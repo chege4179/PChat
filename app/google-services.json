@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "67463642154",
+    "project_id": "pcmedia-d82cc",
+    "storage_bucket": "pcmedia-d82cc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67463642154:android:b8cb3ce545c40b64aed753",
+        "android_client_info": {
+          "package_name": "com.pcmedia"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67463642154-h2itakncss982v4pqi5gcbg7d05m0bgd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdPoisVlQNUxHCt0M34TqaFTwVErJFkVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67463642154-h2itakncss982v4pqi5gcbg7d05m0bgd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67463642154:android:510b022cc5a4a665aed753",
+        "android_client_info": {
+          "package_name": "com.peterchege.pchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67463642154-h2itakncss982v4pqi5gcbg7d05m0bgd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdPoisVlQNUxHCt0M34TqaFTwVErJFkVE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67463642154-h2itakncss982v4pqi5gcbg7d05m0bgd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
