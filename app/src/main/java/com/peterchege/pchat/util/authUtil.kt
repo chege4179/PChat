@@ -15,14 +15,17 @@ import javax.inject.Inject
 fun getGoogleSignInClient(context: Context): GoogleSignInClient {
     val signInOption = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
+        .requestIdToken(Constants.CLIENT_ID)
+        .requestId()
+        .requestProfile()
         .build()
 
     return GoogleSignIn.getClient(context, signInOption)
 }
 
-class AuthResult: ActivityResultContract<Int, Task<GoogleSignInAccount>?>() {
+class AuthResultContract : ActivityResultContract<Int, Task<GoogleSignInAccount>?>() {
     override fun createIntent(context: Context, input: Int?): Intent =
-        getGoogleSignInClient(context = context).signInIntent.putExtra("input", input)
+        getGoogleSignInClient(context).signInIntent.putExtra("input", input)
 
     override fun parseResult(resultCode: Int, intent: Intent?): Task<GoogleSignInAccount>? {
         return when (resultCode) {

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -25,6 +26,7 @@ fun DashBoardScreen(
     navController: NavController,
     viewModel: DashBoardViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -43,12 +45,11 @@ fun DashBoardScreen(
                             modifier = Modifier
                                 .fillMaxWidth(0.5f)
                                 .clickable {
-                                    viewModel.logoutUser(navController = navController)
+                                    viewModel.logoutUser(navController = navController,context = context)
                                 }
                             ,
                             text = "Log Out"
                         )
-
                     }
                 }
                 ,
@@ -63,7 +64,7 @@ fun DashBoardScreen(
             viewModel.imageUrl?.let {
                 Image(
                     painter = rememberImagePainter(
-                        data = "https://res.cloudinary.com/dhuqr5iyw/image/upload/v1636811743/sample.jpg",
+                        data = it,
                         builder = {
                             crossfade(true)
 
