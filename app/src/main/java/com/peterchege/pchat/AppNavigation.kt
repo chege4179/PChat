@@ -2,14 +2,13 @@ package com.peterchege.pchat
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.peterchege.pchat.screens.addchat.AddChatScreen
-import com.peterchege.pchat.screens.dashboard.DashBoardScreen
-import com.peterchege.pchat.screens.dashboard.chat.chat_screen.ChatScreen
-import com.peterchege.pchat.screens.sign_in.SignInScreen
+import com.peterchege.pchat.ui.screens.addchat.AddChatScreen
+import com.peterchege.pchat.ui.screens.dashboard.DashBoardScreen
+import com.peterchege.pchat.ui.screens.dashboard.chat.chat_screen.ChatScreen
+import com.peterchege.pchat.ui.screens.sign_in.SignInScreen
 import com.peterchege.pchat.util.Screens
 
 

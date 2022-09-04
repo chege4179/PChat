@@ -1,4 +1,4 @@
-package com.peterchege.pchat.screens.sign_in
+package com.peterchege.pchat.ui.screens.sign_in
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,8 +9,6 @@ import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseAuth
-import com.peterchege.pchat.messaging.MyFirebaseMessagingService.Companion.token
 import com.peterchege.pchat.models.User
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens

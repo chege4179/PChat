@@ -1,10 +1,9 @@
-package com.peterchege.pchat.screens.dashboard
+package com.peterchege.pchat.ui.screens.dashboard
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
 import com.peterchege.pchat.util.getGoogleSignInClient

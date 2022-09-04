@@ -15,4 +15,7 @@ object Constants {
     const val FCM_TOKEN = "FCM_TOKEN"
 
 
+    const val PUSHER_API_KEY = "1c11d8cb328092c57fa3"
+
+
 }
