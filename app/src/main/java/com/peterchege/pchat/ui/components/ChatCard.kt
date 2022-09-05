@@ -18,21 +18,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.peterchege.pchat.R
+import com.peterchege.pchat.models.ChatItem
 import com.peterchege.pchat.models.User
 
 @Composable
 fun ChatCard(
-    position: Int,
     otherUserName: String,
     lastMessageText: String,
-    user: User,
-    onChatClicked: (Int) -> Unit
+    imageUrl: String,
+    onChatClicked: (String) -> Unit,
+    chatItem: ChatItem
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onChatClicked.invoke(position) }
+            .clickable {
+                onChatClicked(chatItem.userId)
+            }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -49,7 +52,7 @@ fun ChatCard(
                         .clip(CircleShape)
                     ,
                     painter = rememberImagePainter(
-                        data = user.imageUrl,
+                        data = imageUrl,
                         builder = {
                             crossfade(true)
 

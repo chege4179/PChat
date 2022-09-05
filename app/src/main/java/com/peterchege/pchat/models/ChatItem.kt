@@ -5,6 +5,7 @@ data class ChatItem(
     val name:String,
     val email:String,
     val imageUrl:String,
+    val userId:String,
     val messages:List<Message>,
 
 )

@@ -21,9 +21,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.annotation.ExperimentalCoilApi
 import com.peterchege.pchat.ui.components.ProfileCard
 import com.peterchege.pchat.ui.theme.MainWhiteColor
 
+@OptIn(ExperimentalCoilApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AddChatScreen(

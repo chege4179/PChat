@@ -4,9 +4,13 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import com.peterchege.pchat.ui.components.MessageCard
 import com.peterchege.pchat.ui.components.MessageInput
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -23,6 +28,13 @@ fun ChatScreen(
     navController: NavController,
     viewModel: ChatScreenViewModel = hiltViewModel(),
 ){
+    val scrollState = rememberLazyListState()
+    LaunchedEffect(viewModel.messages.value.size){
+        if(viewModel.messages.value.size > 1){
+            scrollState.animateScrollToItem(viewModel.messages.value.size - 1)
+        }
+
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -65,11 +77,25 @@ fun ChatScreen(
 
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(5.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(5.dp)
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.9f),
+                state = scrollState,
+
             ){
+                items(viewModel.messages.value){
+                    MessageCard(
+
+                        messageItem = it,
+                        currentUser = viewModel.email!!
+                    )
+                }
+
 
 
 
