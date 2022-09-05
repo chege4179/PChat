@@ -1,10 +1,11 @@
-package com.peterchege.pchat
+package com.peterchege.pchat.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.peterchege.pchat.ui.navigation.AppNavigationViewModel
 import com.peterchege.pchat.ui.screens.addchat.AddChatScreen
 import com.peterchege.pchat.ui.screens.dashboard.DashBoardScreen
 import com.peterchege.pchat.ui.screens.dashboard.chat.chat_screen.ChatScreen
@@ -30,7 +31,7 @@ fun AppNavigation(
         composable(Screens.ADD_CHAT_SCREEN){
             AddChatScreen(navController = navController)
         }
-        composable(Screens.CHAT_SCREEN + "/{chatId}"){
+        composable(Screens.CHAT_SCREEN + "/{id}"){
             ChatScreen(navController = navController)
         }
     }

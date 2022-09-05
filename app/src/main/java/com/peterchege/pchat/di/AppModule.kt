@@ -23,11 +23,6 @@ object AppModule {
     @Provides
     @Singleton
     fun providePChatApi():PChatApi{
-        var okHttpClient: OkHttpClient = OkHttpClient().newBuilder()
-            .connectTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
-            .build()
 
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())

@@ -1,4 +1,4 @@
-package com.peterchege.pchat
+package com.peterchege.pchat.ui.navigation
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel

@@ -1,4 +1,4 @@
-package com.peterchege.pchat
+package com.peterchege.pchat.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

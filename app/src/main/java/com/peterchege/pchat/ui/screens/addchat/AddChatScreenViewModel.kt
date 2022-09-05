@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.peterchege.pchat.models.User
+import com.peterchege.pchat.repositories.UserRepository
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,9 +24,13 @@ import javax.inject.Inject
 @HiltViewModel
 class AddChatScreenViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferences,
+    private val userRepository: UserRepository,
 
 
 ):ViewModel() {
+    val email = sharedPreferences.getString(Constants.USER_EMAIL,null)
+
+
     private var _searchTerm = mutableStateOf("")
     var searchTerm: State<String> = _searchTerm
 
@@ -67,12 +72,10 @@ class AddChatScreenViewModel @Inject constructor(
             searchJob?.cancel()
             searchJob = viewModelScope.launch {
                 try {
-//                    val response = api.searchPost(searchTerm = searchTerm)
-//
-//                    _isLoading.value = false
-//                    _searchUsers.value = response.users
-//                    _searchPosts.value = response.posts
+                    val response = userRepository.searchUser(query = searchTerm)
 
+                    _isLoading.value = false
+                    _searchUsers.value = response.users.filter { it.email != email }
 
                 }catch (e: HttpException){
                     _isLoading.value = false

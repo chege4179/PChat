@@ -1,5 +1,6 @@
 package com.peterchege.pchat.ui.screens.sign_in
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import com.peterchege.pchat.util.AuthResultContract
 import kotlinx.coroutines.launch
 
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SignInScreen(
     navController: NavController,
@@ -45,7 +47,7 @@ fun SignInScreen(
                             val signInUser = User(
                                 displayName = it.displayName!!,
                                 email = it.email!!,
-                                id = it.id!!,
+                                userId = it.id!!,
                                 imageUrl = it.photoUrl.toString()
                             )
                             viewModel.onChangeUser(user = signInUser,navController = navController)
