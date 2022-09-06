@@ -51,14 +51,19 @@ class AllChatsScreenViewModel @Inject constructor(
             try {
                 val response = chatRepository.getChats(email = email!!)
                 _isLoading.value = false
+                _isError.value = false
                 _chats.value = response.chats
 
             }catch (e: HttpException){
                 _isLoading.value = false
+                _isError.value = true
+                _errorMsg.value = e.localizedMessage?: "An unexpected error occurred"
                 Log.e("http error",e.localizedMessage?: "a http error occurred")
 
             }catch (e:IOException){
                 _isLoading.value = false
+                _isError.value = true
+                _errorMsg.value = e.localizedMessage?: "An unexpected error occurred"
                 Log.e("io error",e.localizedMessage?: "a http error occurred")
             }
         }

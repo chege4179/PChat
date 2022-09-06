@@ -60,6 +60,15 @@ class ChatScreenViewModel @Inject constructor(
     private val _messages = mutableStateOf<List<Message>>(emptyList())
     val messages :State<List<Message>> = _messages
 
+    private val _isLoading = mutableStateOf(false)
+    val isLoading : State<Boolean> = _isLoading
+
+    private val _isError = mutableStateOf(false)
+    val isError : State<Boolean> = _isError
+
+    private val _errorMsg = mutableStateOf("")
+    val errorMsg: State<String> =_errorMsg
+
     init {
         savedStateHandle.get<String>("id")?.let {
             getUserById(id = it)
@@ -90,6 +99,7 @@ class ChatScreenViewModel @Inject constructor(
         _messages.value = newList
     }
     private fun getMessages(){
+        _isLoading.value = true
         viewModelScope.launch {
             try{
                 val response = chatRepository.getChatMessages(
@@ -97,13 +107,21 @@ class ChatScreenViewModel @Inject constructor(
                     receiverEmail = activeChatUser.value!!.email
                 )
                 if (response.success){
+                    _isLoading.value = false
+                    _isError.value = false
                     _messages.value = response.messages
                 }
             }catch (e: HttpException){
                 Log.e("HTTP ERROR",e.localizedMessage ?: "Http error")
+                _isLoading.value = false
+                _isError.value = true
+                _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
 
             }catch (e:IOException){
                 Log.e("IO ERROR",e.localizedMessage ?: "IO error")
+                _isLoading.value = false
+                _isError.value = true
+                _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
             }
         }
     }

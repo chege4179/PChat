@@ -50,7 +50,7 @@ fun MessageCard(messageItem: Message,currentUser:String) { // 1
             )
         }
         Text( // 4
-            text = messageItem.sender,
+            text = messageItem.sentAt,
             fontSize = 12.sp,
         )
     }

@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -21,6 +23,7 @@ import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.peterchege.pchat.ui.components.MessageCard
 import com.peterchege.pchat.ui.components.MessageInput
+import com.peterchege.pchat.util.Screens
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -29,14 +32,23 @@ fun ChatScreen(
     viewModel: ChatScreenViewModel = hiltViewModel(),
 ){
     val scrollState = rememberLazyListState()
+    val scaffoldState = rememberScaffoldState()
     LaunchedEffect(viewModel.messages.value.size){
         if(viewModel.messages.value.size > 1){
             scrollState.animateScrollToItem(viewModel.messages.value.size - 1)
         }
 
     }
+    LaunchedEffect(key1 = viewModel.isError.value){
+        if(viewModel.isError.value){
+            scaffoldState.snackbarHostState.showSnackbar(
+                message = viewModel.errorMsg.value
+            )
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
                 title = {
@@ -63,10 +75,37 @@ fun ChatScreen(
                             )
                             Spacer(modifier = Modifier.width(20.dp))
                             Text(
-                                modifier = Modifier.fillMaxWidth(0.5f),
+                                modifier = Modifier.fillMaxWidth(0.75f),
                                 text = it.displayName
                             )
-                            Spacer(modifier = Modifier.width(50.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                IconButton(
+                                    onClick = {
+
+                                    }) {
+                                    Icon(
+                                        Icons.Filled.Call,
+                                        contentDescription = "Call",
+                                        Modifier.size(26.dp)
+
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+
+                                    }) {
+                                    Icon(
+                                        Icons.Filled.Settings,
+                                        contentDescription = "Settings",
+                                        Modifier.size(26.dp)
+
+                                    )
+                                }
+
+                            }
                         }
                     }
 
@@ -81,26 +120,43 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(5.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.9f),
-                state = scrollState,
-
-            ){
-                items(viewModel.messages.value){
-                    MessageCard(
-
-                        messageItem = it,
-                        currentUser = viewModel.email!!
+            if(viewModel.isError.value){
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        text = viewModel.errorMsg.value,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
+            }else{
+                if (viewModel.isLoading.value){
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                }else{
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.9f),
+                        state = scrollState,
 
+                        ){
+                        items(viewModel.messages.value){
+                            MessageCard(
 
-
-
+                                messageItem = it,
+                                currentUser = viewModel.email!!
+                            )
+                        }
+                    }
+                    MessageInput()
+                }
             }
-            MessageInput()
+
+
         }
 
 
