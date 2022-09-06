@@ -4,6 +4,7 @@ This is a native chat android application built with jetpack compose (Modern And
 Features include private chat messaging with real time updates using socket.io 
 
 NB: If you run the application it wont work because the server is not available 
+[Github Link To Server Application](https://github.com/chege4179/PChatAPI)
 
 ## Screenshots of the app
 <img src="screenshots/sign_in_screenshot.png" width="250"/> <img src="screenshots/sign_in_screenshot_2.png" width="250"/> <img src="screenshots/all_chat_screen_screenshot.png" width="250"/>
