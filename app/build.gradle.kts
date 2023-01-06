@@ -49,6 +49,8 @@ android {
     }
 }
 
+
+
 dependencies {
 
     implementation ("androidx.core:core-ktx:1.9.0")
@@ -130,7 +132,9 @@ dependencies {
 
     implementation ("com.google.code.gson:gson:2.9.0")
 
-    implementation ("io.socket:socket.io-client:2.0.0")
+    implementation ("io.socket:socket.io-client:2.0.0") {
+        exclude(group = "org.json", module = "json")
+    }
 
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 

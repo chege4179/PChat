@@ -10,6 +10,7 @@ object Screens {
     const val ADD_CHAT_SCREEN = "ADD_CHAT_SCREEN"
     const val STATUS_SCREEN = "STATUS_SCREEN"
     const val ALL_STATUS_SCREEN = "ADD_STATUS_SCREEN"
+    const val ACCOUNT_SCREEN = "ACCOUNT_SCREEN"
 
 
 

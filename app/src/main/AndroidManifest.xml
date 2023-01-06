@@ -7,7 +7,7 @@
 
     <application
         android:usesCleartextTraffic="true"
-        android:name=".di.PChatApp"
+        android:name=".data.di.PChatApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PChat">
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.PChat">
@@ -28,7 +28,7 @@
         </activity>
 
         <service
-            android:name=".messaging.MyFirebaseMessagingService"
+            android:name=".data.messaging.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
