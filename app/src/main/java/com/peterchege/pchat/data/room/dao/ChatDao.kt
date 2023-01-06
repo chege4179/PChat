@@ -15,6 +15,9 @@ interface ChatDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChat(chatEntity: ChatEntity)
 
+    @Query("SELECT * FROM chats WHERE googleId = :receiverGoogleId")
+    suspend fun getChatById(receiverGoogleId:String):ChatEntity?
+
 
     @Query("DELETE FROM chats")
     suspend fun clearChats()
