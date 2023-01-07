@@ -1,3 +1,6 @@
+plugins {
+    id("com.diffplug.spotless") version "5.3.0"
+}
 buildscript {
     repositories {
         google()
@@ -16,6 +19,13 @@ buildscript {
 
 
 
-tasks.register("clean",Delete::class){
-    delete(rootProject.buildDir)
+apply(plugin = "com.diffplug.spotless")
+spotless {
+    kotlin {
+        target("**/*.kt")
+        licenseHeaderFile(
+            rootProject.file("${project.rootDir}/spotless/LICENSE.txt"),
+            "^(package|object|import|interface)"
+        )
+    }
 }
