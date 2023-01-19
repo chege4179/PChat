@@ -17,6 +17,7 @@ package com.peterchege.pchat.presentation.ui.screens.sign_in
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ fun SignInScreen(
             try {
                 val account = task?.getResult(ApiException::class.java)
                 if (account == null) {
+                    Toast.makeText(context,"Your devices need google play services to login using google",Toast.LENGTH_LONG).show()
 
                 } else {
                     coroutineScope.launch {

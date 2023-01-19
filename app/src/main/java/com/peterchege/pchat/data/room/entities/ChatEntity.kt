@@ -27,4 +27,5 @@ data class ChatEntity (
     val googleId:String,
     val email:String,
     val imageUrl:String,
+
     )

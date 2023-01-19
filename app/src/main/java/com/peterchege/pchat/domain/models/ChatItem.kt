@@ -22,5 +22,4 @@ data class ChatItem(
     val imageUrl:String,
     val userId:String,
     val messages:List<Message>,
-
     )

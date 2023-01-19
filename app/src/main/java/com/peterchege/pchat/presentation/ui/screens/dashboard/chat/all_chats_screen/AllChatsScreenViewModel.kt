@@ -62,22 +62,39 @@ class AllChatsScreenViewModel @Inject constructor(
     private fun getChats() {
         viewModelScope.launch {
             try {
-                val response = offlineFirstChatRepository.getChats(email = email!!)
-                response.chats.map { chatItem ->
-                    offlineFirstChatRepository.insertChatToDB(chatItem)
-                }
-                val localChats = offlineFirstChatRepository.getLocalChats().map {
-                    val messages = offlineFirstChatRepository.getSingleChatMessages(
-                        sender = email!!,
-                        receiver = it.email
-                    ).map {
-                        it.asExternalModel()
+                val offlineChats = offlineFirstChatRepository.getLocalChats()
+                if (offlineChats.isEmpty()){
+                    val response = offlineFirstChatRepository.getChats(email = email!!)
+                    response.chats.map { chatItem ->
+                        offlineFirstChatRepository.insertChatToDB(chatItem)
                     }
-                    it.asExternalModel(messages = messages)
+                    val localChats = offlineFirstChatRepository.getLocalChats().map {
+                        val messages = offlineFirstChatRepository.getSingleChatMessages(
+                            sender = email!!,
+                            receiver = it.email
+                        ).map {
+                            it.asExternalModel()
+                        }
+                        it.asExternalModel(messages = messages)
+                    }
+                    _isLoading.value = false
+                    _isError.value = false
+                    _chats.value = localChats
+                }else{
+                    _chats.value = offlineChats.map { it ->
+                        val messages = offlineFirstChatRepository.getSingleChatMessages(
+                            sender = email!!,
+                            receiver = it.email
+                        ).map {
+                            it.asExternalModel()
+                        }
+                        it.asExternalModel(messages = messages)
+                    }
+                    _isLoading.value = false
+                    _isError.value = false
+
                 }
-                _isLoading.value = false
-                _isError.value = false
-                _chats.value = localChats
+
 
             } catch (e: HttpException) {
                 _isLoading.value = false
