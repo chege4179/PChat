@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import com.peterchege.pchat.presentation.ui.components.ProfileCard
 import com.peterchege.pchat.presentation.ui.theme.MainWhiteColor
+import com.peterchege.pchat.util.Screens
 
 
 @OptIn(ExperimentalCoilApi::class)
@@ -127,7 +128,8 @@ fun AddChatScreen(
                                 navController = navController,
                                 user =user,
                                 onProfileNavigate = {
-                                    viewModel.onProfileNavigate(it,navController = navController)
+                                    navController.navigate(Screens.CHAT_SCREEN + "/$it")
+
                                 }
                             )
                         }

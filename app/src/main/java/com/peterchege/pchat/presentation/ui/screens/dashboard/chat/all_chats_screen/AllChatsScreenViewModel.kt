@@ -15,17 +15,17 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.dashboard.chat.all_chats_screen
 
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.peterchege.pchat.domain.models.ChatItem
-import com.peterchege.pchat.data.repositories.OfflineFirstChatRepository
-import com.peterchege.pchat.domain.mappers.asExternalModel
-import com.peterchege.pchat.util.Constants
+import com.peterchege.pchat.domain.mappers.toExternalModel
+import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.domain.repository.ChatRepository
+import com.peterchege.pchat.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
@@ -34,11 +34,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AllChatsScreenViewModel @Inject constructor(
-    private val offlineFirstChatRepository: OfflineFirstChatRepository,
-    private val sharedPreferences: SharedPreferences,
+    private val offlineFirstChatRepository: ChatRepository,
+    private val offlineFirstUserRepository: UserRepository,
+
 
     ) : ViewModel() {
-    val email = sharedPreferences.getString(Constants.USER_EMAIL, null)
 
     private val _isFound = mutableStateOf(true)
     val isFound: State<Boolean> = _isFound
@@ -52,8 +52,8 @@ class AllChatsScreenViewModel @Inject constructor(
     private val _errorMsg = mutableStateOf("")
     val errorMsg: State<String> = _errorMsg
 
-    private val _chats = mutableStateOf<List<ChatItem>>(emptyList())
-    val chats: State<List<ChatItem>> = _chats
+    private val _chats = mutableStateOf<List<NetworkUser>>(emptyList())
+    val chats: State<List<NetworkUser>> = _chats
 
     init {
         getChats()
@@ -62,40 +62,15 @@ class AllChatsScreenViewModel @Inject constructor(
     private fun getChats() {
         viewModelScope.launch {
             try {
-                val offlineChats = offlineFirstChatRepository.getLocalChats()
-                if (offlineChats.isEmpty()){
-                    val response = offlineFirstChatRepository.getChats(email = email!!)
-                    response.chats.map { chatItem ->
-                        offlineFirstChatRepository.insertChatToDB(chatItem)
-                    }
-                    val localChats = offlineFirstChatRepository.getLocalChats().map {
-                        val messages = offlineFirstChatRepository.getSingleChatMessages(
-                            sender = email!!,
-                            receiver = it.email
-                        ).map {
-                            it.asExternalModel()
-                        }
-                        it.asExternalModel(messages = messages)
-                    }
-                    _isLoading.value = false
-                    _isError.value = false
-                    _chats.value = localChats
-                }else{
-                    _chats.value = offlineChats.map { it ->
-                        val messages = offlineFirstChatRepository.getSingleChatMessages(
-                            sender = email!!,
-                            receiver = it.email
-                        ).map {
-                            it.asExternalModel()
-                        }
-                        it.asExternalModel(messages = messages)
-                    }
-                    _isLoading.value = false
-                    _isError.value = false
+                offlineFirstUserRepository.getAuthUser().collectLatest { user ->
+                    val offlineChats =
+                        user?.let { offlineFirstChatRepository.getChats(userId = it.userId) }
+                            ?: return@collectLatest
 
+                    _chats.value = offlineChats.map { it.toExternalModel() }
+                    _isLoading.value = false
+                    _isError.value = false
                 }
-
-
             } catch (e: HttpException) {
                 _isLoading.value = false
                 _isError.value = true

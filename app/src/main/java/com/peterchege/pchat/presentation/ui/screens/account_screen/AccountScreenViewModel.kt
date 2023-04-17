@@ -20,38 +20,39 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.peterchege.pchat.data.repositories.OfflineFirstChatRepository
+import com.peterchege.pchat.data.OfflineFirstChatRepository
+import com.peterchege.pchat.domain.repository.ChatRepository
+import com.peterchege.pchat.domain.repository.UserRepository
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
 import com.peterchege.pchat.util.getGoogleSignInClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class AccountScreenViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
-    private val offlineFirstChatRepository: OfflineFirstChatRepository
+
+    private val offlineFirstUserRepository: UserRepository,
+    private val offlineFirstChatRepository: ChatRepository
 
 ) :ViewModel(){
-
-    val displayName = sharedPreferences.getString(Constants.USER_DISPLAY_NAME,null)
-    val imageUrl = sharedPreferences.getString(Constants.USER_IMAGE_URL,null)
-    val email = sharedPreferences.getString(Constants.USER_EMAIL,null)
-
+    val authUser = offlineFirstUserRepository.getAuthUser()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = null
+        )
 
     fun logoutUser(navController: NavController, context: Context){
         val signInClient = getGoogleSignInClient(context = context)
-
-        sharedPreferences.edit().remove(Constants.USER_ID).commit()
-        sharedPreferences.edit().remove(Constants.USER_DISPLAY_NAME).commit()
-        sharedPreferences.edit().remove(Constants.USER_EMAIL).commit()
-        sharedPreferences.edit().remove(Constants.USER_IMAGE_URL).commit()
         signInClient.signOut()
+        offlineFirstUserRepository.signOutUser()
         viewModelScope.launch {
             offlineFirstChatRepository.clearChats()
-            offlineFirstChatRepository.clearMessages()
         }
         navController.navigate(Screens.SIGN_IN_SCREEN)
 

@@ -15,54 +15,51 @@
  */
 package com.peterchege.pchat.domain.mappers
 
-import com.peterchege.pchat.data.room.entities.ChatEntity
-import com.peterchege.pchat.data.room.entities.MessageEntity
-import com.peterchege.pchat.domain.models.ChatItem
+import com.peterchege.pchat.core.room.entities.ChatEntity
+import com.peterchege.pchat.core.room.entities.MessageEntity
 import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.domain.models.NetworkUser
 
-fun ChatItem.toEntity():ChatEntity{
+fun NetworkUser.toEntity(): ChatEntity {
     return ChatEntity(
-        name = name,
-        chatId = id,
-        googleId = userId,
+        userId = userId,
+        googleId = googleId,
+        fullName = fullName,
         email = email,
         imageUrl = imageUrl,
     )
 }
 
-fun ChatEntity.asExternalModel(messages:List<Message>):ChatItem{
-    return ChatItem(
-        name = name,
+fun ChatEntity.toExternalModel():NetworkUser{
+    return NetworkUser(
+        userId = userId,
+        googleId = googleId,
+        fullName = fullName,
         email = email,
         imageUrl = imageUrl,
-        id = chatId,
-        userId = googleId,
-        messages = messages
     )
 }
 
-fun Message.toEntity():MessageEntity{
+fun Message.toEntity(): MessageEntity {
     return MessageEntity(
-        sender = sender,
-        receiver = receiver,
         sentAt = sentAt,
-        sentOn = sentOn,
         message = message,
-        messageId = id!!,
-        isMine = isMine,
+        messageId = messageId,
         isRead = isRead,
-    )
+        receiverId = receiverId,
+        senderId = senderId,
+
+
+        )
 }
 
-fun MessageEntity.asExternalModel():Message{
+fun MessageEntity.toExternalModel(): Message {
     return Message(
-        sender = sender,
-        receiver = receiver,
         sentAt = sentAt,
-        sentOn = sentOn,
         message = message,
-        id = messageId,
-        isMine = isMine,
+        messageId = messageId,
         isRead = isRead,
+        receiverId = receiverId,
+        senderId = senderId,
     )
 }

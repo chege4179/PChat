@@ -33,33 +33,31 @@ import androidx.compose.ui.unit.sp
 import com.peterchege.pchat.domain.models.Message
 
 @Composable
-fun MessageCard(messageItem: Message, currentUser:String) { // 1
+fun MessageCard(messageItem: Message, currentUserId:String) { // 1
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalAlignment = when { // 2
-            currentUser == messageItem.sender -> Alignment.End
+        horizontalAlignment = when (// 2
+            currentUserId) {
+            messageItem.senderId -> Alignment.End
             else -> Alignment.Start
-//            messageItem.isMine -> Alignment.End
-//            else -> Alignment.Start
         },
     ) {
         Card(
             modifier = Modifier.widthIn(max = 340.dp),
-            shape = cardShapeFor(message = messageItem, currentUser = currentUser), // 3
-            backgroundColor = when {
-                currentUser == messageItem.sender -> MaterialTheme.colors.primary
+            shape = cardShapeFor(message = messageItem, currentUserId = currentUserId), // 3
+            backgroundColor = when (currentUserId) {
+                messageItem.senderId -> MaterialTheme.colors.primary
                 else -> MaterialTheme.colors.secondary
-//                messageItem.isMine -> MaterialTheme.colors.primary
-//                else -> MaterialTheme.colors.secondary
+
             },
         ) {
             Text(
                 modifier = Modifier.padding(8.dp),
                 text = messageItem.message,
                 color = when {
-                    currentUser == messageItem.sender -> MaterialTheme.colors.onPrimary
+                    currentUserId == messageItem.senderId -> MaterialTheme.colors.onPrimary
                     else -> MaterialTheme.colors.onSecondary
                 },
             )
@@ -72,10 +70,10 @@ fun MessageCard(messageItem: Message, currentUser:String) { // 1
 }
 
 @Composable
-fun cardShapeFor(message: Message, currentUser: String): Shape {
+fun cardShapeFor(message: Message, currentUserId: String): Shape {
     val roundedCorners = RoundedCornerShape(16.dp)
-    return when {
-        currentUser == message.sender -> roundedCorners.copy(bottomEnd = CornerSize(0))
+    return when (currentUserId) {
+        message.senderId -> roundedCorners.copy(bottomEnd = CornerSize(0))
         else -> roundedCorners.copy(bottomStart = CornerSize(0))
     }
 }

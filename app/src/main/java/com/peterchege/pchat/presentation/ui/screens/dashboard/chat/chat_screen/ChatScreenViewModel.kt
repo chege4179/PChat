@@ -15,7 +15,6 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.dashboard.chat.chat_screen
 
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -23,22 +22,25 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.peterchege.pchat.core.room.entities.MessageEntity
+import com.peterchege.pchat.data.OfflineFirstChatRepository
+import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.domain.mappers.toExternalModel
 import com.peterchege.pchat.domain.models.Message
-import com.peterchege.pchat.domain.models.Room
-import com.peterchege.pchat.domain.models.User
-import com.peterchege.pchat.data.repositories.OfflineFirstChatRepository
-import com.peterchege.pchat.data.repositories.OfflineFirstUserRepository
-import com.peterchege.pchat.domain.mappers.asExternalModel
-import com.peterchege.pchat.util.Constants
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.util.SocketHandler.mSocket
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okio.IOException
 import retrofit2.HttpException
-import java.text.SimpleDateFormat
-import java.util.*
+import java.util.UUID
 import javax.inject.Inject
 
 
@@ -46,37 +48,41 @@ import javax.inject.Inject
 class ChatScreenViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val offlineFirstUserRepository: OfflineFirstUserRepository,
-    private val sharedPreferences: SharedPreferences,
+
     private val offlineFirstChatRepository: OfflineFirstChatRepository,
 
-    ) :ViewModel(){
-    val displayName = sharedPreferences.getString(Constants.USER_DISPLAY_NAME,null)
-    val imageUrl = sharedPreferences.getString(Constants.USER_IMAGE_URL,null)
-    val email = sharedPreferences.getString(Constants.USER_EMAIL,null)
+    ) : ViewModel() {
+    val authUser = offlineFirstUserRepository.getAuthUser()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = null
+        )
+
 
     private val _activeChatUserId = mutableStateOf("")
-    val activeChatUserId: State<String> =_activeChatUserId
+    val activeChatUserId: State<String> = _activeChatUserId
 
     private val _messageText = mutableStateOf("")
-    val messageText: State<String> =_messageText
+    val messageText: State<String> = _messageText
 
     private val _roomId = mutableStateOf<String?>(null)
-    val roomId: State<String?> =_roomId
+    val roomId: State<String?> = _roomId
 
-    private val _activeChatUser = mutableStateOf<User?>(null)
-    val activeChatUser: State<User?> =_activeChatUser
+    private val _activeChatUser = mutableStateOf<NetworkUser?>(null)
+    val activeChatUser: State<NetworkUser?> = _activeChatUser
 
-    private val _messages = mutableStateOf<List<Message>>(emptyList())
-    val messages :State<List<Message>> = _messages
+    private val _messages = mutableStateOf<Flow<List<MessageEntity>>>(flow { emptyList<Message>() })
+    val messages: State<Flow<List<MessageEntity>>> = _messages
 
     private val _isLoading = mutableStateOf(false)
-    val isLoading : State<Boolean> = _isLoading
+    val isLoading: State<Boolean> = _isLoading
 
     private val _isError = mutableStateOf(false)
-    val isError : State<Boolean> = _isError
+    val isError: State<Boolean> = _isError
 
     private val _errorMsg = mutableStateOf("")
-    val errorMsg: State<String> =_errorMsg
+    val errorMsg: State<String> = _errorMsg
 
     init {
         savedStateHandle.get<String>("id")?.let {
@@ -93,101 +99,121 @@ class ChatScreenViewModel @Inject constructor(
             }
         }
         mSocket.on("receiveMessage") { messagePayload ->
-            val message = Json.decodeFromString<Message>(messagePayload[0].toString())
-            if( (message.sender ==email && message.receiver == activeChatUser.value!!.email) ||
-                (message.sender == activeChatUser.value!!.email && message.receiver == email)){
-                addMessage(message = message)
+            viewModelScope.launch {
+                authUser.collectLatest {
+                    if (it == null) return@collectLatest
+                    val message = Json.decodeFromString<Message>(messagePayload[0].toString())
+                    if ((message.senderId == it.userId && message.receiverId == activeChatUser.value!!.userId) ||
+                        (message.senderId == activeChatUser.value!!.userId && message.receiverId == it.userId)
+                    ) {
+                        addMessage(message = message)
+                    }
+
+                    Log.e("message received", message.message)
+                }
+
             }
 
-            Log.e("message received",message.message)
         }
     }
+
     private fun addMessage(message: Message) {
         viewModelScope.launch {
-            offlineFirstChatRepository.insertMessage(message = message)
+            offlineFirstChatRepository.insertMessages(messages = listOf<Message>(message))
+
+
+            lateinit var initialMessages: List<Message>;
+
+            _messages.value.collectLatest {
+                initialMessages = it.map { it.toExternalModel() }
+            }
+
+            val newList = ArrayList(initialMessages)
+            newList.add(message)
+            _messages.value = flow { newList.toList() }
         }
 
-
-        val newList = ArrayList(_messages.value)
-        newList.add(message)
-        _messages.value = newList
     }
-    private fun getMessages(){
+
+    private fun getMessages() {
         _isLoading.value = true
         viewModelScope.launch {
-            try{
-//                val response = offlineFirstChatRepository.getChatMessages(
-//                    senderEmail = email!!,
-//                    receiverEmail = activeChatUser.value!!.email
-//                )
-                val localMessages = offlineFirstChatRepository.getSingleChatMessages(
-                    sender = email!!,
-                    receiver = activeChatUser.value!!.email
-                )
-                _isLoading.value = false
-                _isError.value = false
-                _messages.value = localMessages.map { it.asExternalModel() }
-//                if (response.success){
-//                    _isLoading.value = false
-//                    _isError.value = false
-//                    _messages.value = response.messages
-//                }
-            }catch (e: HttpException){
-                Log.e("HTTP ERROR",e.localizedMessage ?: "Http error")
+            try {
+                authUser.collectLatest {
+                    val localMessages = offlineFirstChatRepository.getSingleChatMessages(
+                        senderId = it!!.userId,
+                        receiverId = activeChatUser.value!!.userId
+                    )
+                    _isLoading.value = false
+                    _isError.value = false
+                    _messages.value = localMessages
+                }
+
+
+            } catch (e: HttpException) {
+                Log.e("HTTP ERROR", e.localizedMessage ?: "Http error")
                 _isLoading.value = false
                 _isError.value = true
                 _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
 
-            }catch (e:IOException){
-                Log.e("IO ERROR",e.localizedMessage ?: "IO error")
+            } catch (e: IOException) {
+                Log.e("IO ERROR", e.localizedMessage ?: "IO error")
                 _isLoading.value = false
                 _isError.value = true
                 _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
             }
         }
     }
-    fun onChangeMessageText(text:String){
+
+    fun onChangeMessageText(text: String) {
         _messageText.value = text
     }
 
-    private fun getUserById(id:String){
+    private fun getUserById(id: String) {
         viewModelScope.launch {
-            try{
+            try {
                 val response = offlineFirstUserRepository.getUserById(id = id)
-                if (response.success){
-                    _activeChatUser.value = response.user
-                    Log.e("User",response.user.toString())
-                    getMessages()
-                    val room = Room(
-                        user1 = email!!,
-                        user2 = response.user!!.email
+                if (response.success) {
+                    _activeChatUser.value = NetworkUser(
+                        userId = response.user.userId,
+                        googleId = response.user.googleId,
+                        fullName = response.user.fullName,
+                        email = response.user.email,
+                        imageUrl = response.user.imageUrl
                     )
-                    mSocket.emit("joinRoom",Gson().toJson(room))
+                    Log.e("User", response.user.toString())
+                    getMessages()
+
                 }
 
-            }catch (e: HttpException){
-                Log.e("HTTP ERROR",e.localizedMessage ?: "Http error")
+            } catch (e: HttpException) {
+                Log.e("HTTP ERROR", e.localizedMessage ?: "Http error")
 
-            }catch (e:IOException){
-                Log.e("IO ERROR",e.localizedMessage ?: "IO error")
+            } catch (e: IOException) {
+                Log.e("IO ERROR", e.localizedMessage ?: "IO error")
 
             }
         }
 
     }
 
-    fun sendMessage(){
-        val message = Message(
-            message = _messageText.value,
-            sender =  email!!,
-            sentOn = SimpleDateFormat("dd/MM/yyyy").format(Date()),
-            sentAt = SimpleDateFormat("hh:mm:ss").format(Date()),
-            receiver = _activeChatUser.value!!.email,
-            isMine = true,
-            id= UUID.randomUUID().toString(),
-            isRead = true
-        )
-        _messageText.value = ""
-        mSocket.emit("sendMessage", Gson().toJson(message))
+    fun sendMessage() {
+        viewModelScope.launch {
+            authUser.collectLatest {
+                if (it == null) return@collectLatest
+                val message = Message(
+                    message = _messageText.value,
+                    isRead = false,
+                    senderId = it.userId,
+                    receiverId = activeChatUser.value?.userId ?: "",
+                    sentAt = "",
+                    messageId = UUID.randomUUID().toString()
+                )
+                _messageText.value = ""
+                mSocket.emit("sendMessage", Gson().toJson(message))
+            }
+
+        }
+
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
@@ -55,6 +56,7 @@ fun DashBoardScreen(
     navController: NavController,
     viewModel: DashBoardViewModel = hiltViewModel(),
 ) {
+    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         scaffoldState = scaffoldState,
@@ -68,7 +70,7 @@ fun DashBoardScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SubcomposeAsyncImage(
-                            model = viewModel.imageUrl,
+                            model = authUser?.imageUrl ?: "",
                             loading = {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -79,8 +81,8 @@ fun DashBoardScreen(
                                 .width(36.dp)
                                 .height(36.dp)
                                 .clip(CircleShape)
-                                .clickable{
-                                   navController.navigate(Screens.ACCOUNT_SCREEN)
+                                .clickable {
+                                    navController.navigate(Screens.ACCOUNT_SCREEN)
                                 }
                             ,
                             contentDescription = "Profile Photo URL"

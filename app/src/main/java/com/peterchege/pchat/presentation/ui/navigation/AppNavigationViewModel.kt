@@ -16,24 +16,34 @@
 package com.peterchege.pchat.presentation.ui.navigation
 
 import android.content.SharedPreferences
+import android.service.autofill.UserData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.peterchege.pchat.domain.models.User
+import com.peterchege.pchat.domain.repository.UserRepository
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 
 @HiltViewModel
 class AppNavigationViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
+    private val offlineFirstUserRepository:UserRepository,
 
 ) :ViewModel() {
-    fun getInitialRoute():String {
-        val username = sharedPreferences.getString(Constants.USER_DISPLAY_NAME,null)
-        if (username === null){
-            return Screens.SIGN_IN_SCREEN
-        }else{
-            return Screens.DASHBOARD_SCREEN
-        }
-    }
+
+    val user = offlineFirstUserRepository.getAuthUser()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = null
+        )
+
+
 }

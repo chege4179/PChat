@@ -15,13 +15,25 @@
  */
 package com.peterchege.pchat.domain.repository
 
-import com.peterchege.pchat.data.api.responses.GetChatsResponse
-import com.peterchege.pchat.data.api.responses.GetMessagesResponse
+import com.peterchege.pchat.core.api.responses.GetMessagesResponse
+import com.peterchege.pchat.core.room.entities.ChatEntity
+import com.peterchege.pchat.core.room.entities.MessageEntity
+import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
 
 
-    suspend fun getChats(email:String): GetChatsResponse
+    suspend fun getChatMessages(senderId: String, receiverId: String): GetMessagesResponse
 
-    suspend fun getChatMessages(senderEmail:String,receiverEmail:String): GetMessagesResponse
+    suspend fun getChats(userId: String): List<ChatEntity>
+
+    fun getSingleChatMessages(senderId: String, receiverId: String): Flow<List<MessageEntity>>
+
+    suspend fun insertMessages(messages: List<Message>)
+
+    suspend fun clearChats()
+
+    suspend fun insertChats(chats: List<NetworkUser>)
 }

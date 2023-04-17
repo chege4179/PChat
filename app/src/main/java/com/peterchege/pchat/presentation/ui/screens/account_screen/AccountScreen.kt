@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
@@ -50,6 +51,7 @@ fun AccountScreen(
     navController: NavController,
     viewModel: AccountScreenViewModel = hiltViewModel()
 ) {
+    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
     val context = LocalContext.current
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -62,12 +64,14 @@ fun AccountScreen(
             verticalArrangement = Arrangement.Top,
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
                 SubcomposeAsyncImage(
-                    model = viewModel.imageUrl,
+                    model = authUser?.imageUrl ?: "",
                     loading = {
                         Box(modifier = Modifier.fillMaxSize()) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -85,23 +89,22 @@ fun AccountScreen(
                     contentDescription = "Profile Photo URL"
                 )
                 Spacer(modifier = Modifier.height(7.dp))
-                viewModel.displayName?.let { it1 ->
+                authUser?.let { it1 ->
                     Text(
-                        text = it1,
+                        text = it1.fullName,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         fontSize = 19.sp
                     )
-                }
-                Spacer(modifier = Modifier.height(7.dp))
-                viewModel.email?.let { it1 ->
+                    Spacer(modifier = Modifier.height(7.dp))
                     Text(
-                        text = it1,
+                        text = it1.email,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         fontSize = 17.sp
                     )
                 }
+
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

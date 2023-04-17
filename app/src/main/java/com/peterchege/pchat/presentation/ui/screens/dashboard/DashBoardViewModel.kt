@@ -15,67 +15,48 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.dashboard
 
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.peterchege.pchat.data.repositories.OfflineFirstChatRepository
-import com.peterchege.pchat.data.repositories.OfflineFirstUserRepository
-import com.peterchege.pchat.util.Constants
-import com.peterchege.pchat.util.Screens
+import com.peterchege.pchat.domain.repository.ChatRepository
+import com.peterchege.pchat.domain.repository.UserRepository
 import com.peterchege.pchat.util.SocketHandler.mSocket
-import com.peterchege.pchat.util.getGoogleSignInClient
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 
 @HiltViewModel
 class DashBoardViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
-    private val offlineFirstChatRepository: OfflineFirstChatRepository,
-):ViewModel() {
+
+    private val offlineFirstChatRepository: ChatRepository,
+    private val offlineFirstUserRepository: UserRepository,
+) : ViewModel() {
+    val authUser = offlineFirstUserRepository.getAuthUser()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = null
+        )
     private val _isError = mutableStateOf(false)
-    val isError: State<Boolean> =_isError
+    val isError: State<Boolean> = _isError
 
     private val _errorMsg = mutableStateOf("")
-    val errorMsg: State<String> =_errorMsg
+    val errorMsg: State<String> = _errorMsg
 
     private val _isLoading = mutableStateOf(false)
-    val isLoading: State<Boolean> =_isLoading
+    val isLoading: State<Boolean> = _isLoading
 
     private val _msg = mutableStateOf("")
     val msg: State<String> = _msg
 
-    val displayName = sharedPreferences.getString(Constants.USER_DISPLAY_NAME,null)
-    val imageUrl = sharedPreferences.getString(Constants.USER_IMAGE_URL,null)
-    val email = sharedPreferences.getString(Constants.USER_EMAIL,null)
 
-    init{
-        mSocket.emit("connected","$email has connected")
+    init {
+        mSocket.emit("connected", " has connected")
 
     }
 
-
-
-    fun logoutUser(navController:NavController,context: Context){
-        val signInClient = getGoogleSignInClient(context = context)
-
-        sharedPreferences.edit().remove(Constants.USER_ID).commit()
-        sharedPreferences.edit().remove(Constants.USER_DISPLAY_NAME).commit()
-        sharedPreferences.edit().remove(Constants.USER_EMAIL).commit()
-        sharedPreferences.edit().remove(Constants.USER_IMAGE_URL).commit()
-        signInClient.signOut()
-        viewModelScope.launch {
-            offlineFirstChatRepository.clearChats()
-            offlineFirstChatRepository.clearMessages()
-        }
-        navController.navigate(Screens.SIGN_IN_SCREEN)
-
-
-    }
 
 }

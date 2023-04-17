@@ -15,10 +15,31 @@
  */
 package com.peterchege.pchat.domain.models
 
+import kotlinx.serialization.Serializable
+
 
 data class User(
     val displayName: String,
     val email: String,
     val userId:String,
     val imageUrl:String,
+)
+
+@Serializable
+data class NetworkUser(
+    val userId: String,
+    val googleId:String,
+    val fullName: String,
+    val email: String,
+    val imageUrl: String,
+)
+
+data class UserWithMessages(
+    val userId: String,
+    val googleId:String,
+    val fullName: String,
+    val email: String,
+    val imageUrl: String,
+    val receivedMessages:List<Message>,
+    val sentMessages:List<Message>,
 )

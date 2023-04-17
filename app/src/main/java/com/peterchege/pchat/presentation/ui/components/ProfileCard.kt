@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.domain.models.User
 
 @ExperimentalCoilApi
@@ -38,7 +39,7 @@ import com.peterchege.pchat.domain.models.User
 fun ProfileCard(
     navController: NavController,
     onProfileNavigate:(String) ->Unit,
-    user: User,
+    user: NetworkUser,
 ){
     Card(
         modifier = Modifier
@@ -84,7 +85,7 @@ fun ProfileCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = user.displayName,
+                    text = user.fullName,
                     fontWeight = FontWeight.Bold,
                     )
                 Text(text=user.email)

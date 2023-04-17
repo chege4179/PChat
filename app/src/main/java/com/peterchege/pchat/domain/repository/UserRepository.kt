@@ -15,10 +15,13 @@
  */
 package com.peterchege.pchat.domain.repository
 
-import com.peterchege.pchat.data.api.requests.AddUser
-import com.peterchege.pchat.data.api.responses.AddUserResponse
-import com.peterchege.pchat.data.api.responses.GetUserByIdResponse
-import com.peterchege.pchat.data.api.responses.SearchUserResponse
+import com.peterchege.pchat.core.api.requests.AddUser
+import com.peterchege.pchat.core.api.responses.AddUserResponse
+import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
+import com.peterchege.pchat.core.api.responses.SearchUserResponse
+import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.domain.models.User
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
 
@@ -27,4 +30,10 @@ interface UserRepository {
     suspend fun searchUser(query:String): SearchUserResponse
 
     suspend fun getUserById(id:String): GetUserByIdResponse
+
+    fun getAuthUser(): Flow<NetworkUser?>
+
+    fun signOutUser()
+
+    suspend fun setAuthUser(user:NetworkUser)
 }

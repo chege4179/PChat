@@ -20,12 +20,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Message(
+    val messageId:String,
     val message:String,
-    val sender:String,
+    val receiverId:String,
+    val senderId:String,
     val sentAt:String,
-    val receiver:String,
-    val id:String?,
-    val isMine:Boolean,
-    val sentOn:String,
     val isRead:Boolean
 )

@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
-import com.peterchege.pchat.domain.models.ChatItem
+import com.peterchege.pchat.domain.models.NetworkUser
 
 
 @Composable
@@ -41,7 +41,7 @@ fun ChatItemCard(
     lastMessageTimestamp:String,
     imageUrl: String,
     onChatClicked: (String) -> Unit,
-    chatItem: ChatItem,
+    chatItem: NetworkUser,
 
 ) {
     Row(

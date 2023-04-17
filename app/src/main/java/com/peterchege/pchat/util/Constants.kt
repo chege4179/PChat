@@ -17,9 +17,9 @@ package com.peterchege.pchat.util
 
 object Constants {
     const val DATABASE_NAME="pchat_db"
-    const val LOCAL_URL = "http://192.168.1.11:9000"
+    const val LOCAL_URL = "http://192.168.1.5:9004"
     const val REMOTE_URL = "https://pchatapi-production.up.railway.app"
-    const val BASE_URL = REMOTE_URL
+    const val BASE_URL = LOCAL_URL
     const val CHANNEL_ID = "CHANNEL_ID"
 
     const val CLIENT_ID = "67463642154-jlvb454no2v17hkn4go9d0opmlp78lgk.apps.googleusercontent.com"
@@ -33,6 +33,11 @@ object Constants {
 
 
     const val PUSHER_API_KEY = "1c11d8cb328092c57fa3"
+
+    const val LIGHT_MODE= "LIGHT_MODE"
+    const val DARK_MODE = "DARK_MODE"
+
+    const val USER_PREFERENCES = "USER_PREFERENCES"
 
 
 }

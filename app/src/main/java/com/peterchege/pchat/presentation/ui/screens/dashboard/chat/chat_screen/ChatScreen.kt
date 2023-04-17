@@ -34,8 +34,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import com.peterchege.pchat.domain.mappers.toExternalModel
 import com.peterchege.pchat.presentation.ui.components.MessageCard
 import com.peterchege.pchat.presentation.ui.components.MessageInput
 
@@ -47,9 +49,15 @@ fun ChatScreen(
 ){
     val scrollState = rememberLazyListState()
     val scaffoldState = rememberScaffoldState()
-    LaunchedEffect(viewModel.messages.value.size){
-        if(viewModel.messages.value.size > 1){
-            scrollState.animateScrollToItem(viewModel.messages.value.size - 1)
+    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
+    val messages = viewModel.messages.value
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+        .value
+        .map { it.toExternalModel() }
+
+    LaunchedEffect(key1 = messages.size){
+        if(messages.size > 1){
+            scrollState.animateScrollToItem(index = messages.size - 1)
         }
 
     }
@@ -90,7 +98,7 @@ fun ChatScreen(
                             Spacer(modifier = Modifier.width(20.dp))
                             Text(
                                 modifier = Modifier.fillMaxWidth(0.75f),
-                                text = it.displayName
+                                text = it.fullName
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -158,11 +166,10 @@ fun ChatScreen(
                         state = scrollState,
 
                         ){
-                        items(viewModel.messages.value){
+                        items(items = messages){
                             MessageCard(
-
                                 messageItem = it,
-                                currentUser = viewModel.email!!
+                                currentUserId = authUser?.userId ?: "",
                             )
                         }
                     }

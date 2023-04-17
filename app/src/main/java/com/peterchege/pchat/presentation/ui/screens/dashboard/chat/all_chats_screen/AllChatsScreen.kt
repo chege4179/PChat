@@ -85,10 +85,10 @@ fun AllChatsScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(viewModel.chats.value) { chat ->
+                    items(items = viewModel.chats.value) { chat ->
                         ChatItemCard(
-                            otherUserName = chat.name,
-                            lastMessageText = chat.messages.last().message,
+                            otherUserName = chat.fullName,
+                            lastMessageText = "",
                             lastMessageTimestamp = "",
                             imageUrl = chat.imageUrl,
                             onChatClicked = {

@@ -45,12 +45,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignInScreen(
     navController: NavController,
-    viewModel: SignInViewModel = hiltViewModel(),
+    viewModel: SignInScreenViewModel = hiltViewModel(),
 ){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val authResultLauncher =
-        rememberLauncherForActivityResult(contract = AuthResultContract()) { task ->
+    val authResultLauncher = rememberLauncherForActivityResult(contract = AuthResultContract()) { task ->
             try {
                 val account = task?.getResult(ApiException::class.java)
                 if (account == null) {

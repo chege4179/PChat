@@ -23,12 +23,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.peterchege.pchat.domain.models.User
-import com.peterchege.pchat.data.repositories.OfflineFirstUserRepository
+import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
+import com.peterchege.pchat.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
@@ -37,12 +41,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddChatScreenViewModel @Inject constructor(
-    private val sharedPreferences: SharedPreferences,
     private val offlineFirstUserRepository: OfflineFirstUserRepository,
 
 
     ):ViewModel() {
-    val email = sharedPreferences.getString(Constants.USER_EMAIL,null)
+    val authUser = offlineFirstUserRepository.getAuthUser()
 
 
     private var _searchTerm = mutableStateOf("")
@@ -60,22 +63,14 @@ class AddChatScreenViewModel @Inject constructor(
     private val _errorMsg = mutableStateOf("")
     val errorMsg : State<String> = _errorMsg
 
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
 
     private var searchJob : Job? = null
 
-    private val _searchUsers = mutableStateOf<List<User>>(emptyList())
-    val searchUser :State<List<User>> = _searchUsers
-
-    fun onProfileNavigate(username:String, navController: NavController){
-        val loginUsername = sharedPreferences.getString(Constants.USER_EMAIL,null)
-        Log.e("Post author",username)
-        if (loginUsername != null) {
-            Log.e("Login Username",loginUsername)
-        }
-        navController.navigate(Screens.CHAT_SCREEN + "/$username")
-
-
-    }
+    private val _searchUsers = mutableStateOf<List<NetworkUser>>(emptyList())
+    val searchUser :State<List<NetworkUser>> = _searchUsers
 
 
     fun onChangeSearchTerm(searchTerm: String){
@@ -89,7 +84,8 @@ class AddChatScreenViewModel @Inject constructor(
                     val response = offlineFirstUserRepository.searchUser(query = searchTerm)
 
                     _isLoading.value = false
-                    _searchUsers.value = response.users.filter { it.email != email }
+                    _searchUsers.value = response.users
+//                        .filter { it.email != email }
 
                 }catch (e: HttpException){
                     _isLoading.value = false

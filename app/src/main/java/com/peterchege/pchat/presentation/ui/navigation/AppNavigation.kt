@@ -17,6 +17,7 @@ package com.peterchege.pchat.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,23 +34,36 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: AppNavigationViewModel = hiltViewModel()
 ) {
+
+    val user = viewModel.user.collectAsStateWithLifecycle()
+    fun getInitialRoute(): String {
+        return if (user.value === null) {
+            Screens.SIGN_IN_SCREEN
+        } else {
+            if (user.value?.email === "") {
+                Screens.SIGN_IN_SCREEN
+            } else {
+                Screens.DASHBOARD_SCREEN
+            }
+        }
+    }
     NavHost(
         navController = navController,
-        startDestination = viewModel.getInitialRoute()
-    ){
-        composable(Screens.SIGN_IN_SCREEN){
+        startDestination = getInitialRoute()
+    ) {
+        composable(Screens.SIGN_IN_SCREEN) {
             SignInScreen(navController = navController)
         }
-        composable(Screens.DASHBOARD_SCREEN){
+        composable(Screens.DASHBOARD_SCREEN) {
             DashBoardScreen(navController = navController)
         }
-        composable(Screens.ADD_CHAT_SCREEN){
+        composable(Screens.ADD_CHAT_SCREEN) {
             AddChatScreen(navController = navController)
         }
-        composable(Screens.CHAT_SCREEN + "/{id}"){
+        composable(Screens.CHAT_SCREEN + "/{id}") {
             ChatScreen(navController = navController)
         }
-        composable(Screens.ACCOUNT_SCREEN){
+        composable(Screens.ACCOUNT_SCREEN) {
             AccountScreen(navController = navController)
         }
     }
