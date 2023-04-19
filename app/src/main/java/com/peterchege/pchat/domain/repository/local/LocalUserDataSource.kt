@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.domain.repository.local
 
 import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.coroutines.flow.Flow
 
-data class AddUserResponse (
-    val msg:String,
-    val success:Boolean,
-    val isExisting:Boolean,
-    val user:NetworkUser?
-        )
+interface LocalUserDataSource {
+
+    fun getAuthUser(): Flow<NetworkUser?>
+
+    suspend fun signOutUser()
+
+    suspend fun setAuthUser(user: NetworkUser)
+
+    suspend fun getChatUserById(userId:String):NetworkUser?
+}

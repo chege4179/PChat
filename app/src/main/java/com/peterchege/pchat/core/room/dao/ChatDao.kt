@@ -15,6 +15,7 @@
  */
 package com.peterchege.pchat.core.room.dao
 
+import android.content.ClipData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -32,6 +33,9 @@ interface ChatDao {
     @Query("SELECT * FROM chats")
     suspend fun getLocalChats(): List<ChatEntity>
 
+    @Query("SELECT * FROM chats WHERE userId = :userId")
+    suspend fun getChatUserById(userId: String):ChatEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChats(chats:List<ChatEntity> )
 
@@ -40,6 +44,7 @@ interface ChatDao {
 
     @Query("SELECT * FROM chats WHERE userId = :userId")
     suspend fun getChatById(userId: String): ChatEntity?
+
 
 
     fun getMessagesBetweenTwoUsers(
@@ -61,6 +66,8 @@ interface ChatDao {
         receiverId: String
     ): Flow<List<MessageEntity>>
 
+    @Query("SELECT * FROM messages WHERE senderId =:receiverId AND receiverId =:receiverId ORDER BY sentAt DESC LIMIT 1")
+    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
 
     @Query("DELETE FROM chats")
     suspend fun clearChats()

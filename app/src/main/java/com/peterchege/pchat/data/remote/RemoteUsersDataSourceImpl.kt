@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.repository
+package com.peterchege.pchat.data.remote
 
+import com.peterchege.pchat.core.api.PChatApi
 import com.peterchege.pchat.core.api.requests.AddUser
 import com.peterchege.pchat.core.api.responses.AddUserResponse
 import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
 import com.peterchege.pchat.core.api.responses.SearchUserResponse
-import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.models.User
-import kotlinx.coroutines.flow.Flow
+import com.peterchege.pchat.domain.repository.remote.RemoteUserDataSource
+import javax.inject.Inject
 
-interface UserRepository {
+class RemoteUsersDataSourceImpl @Inject constructor(
+    private val api:PChatApi,
+) :RemoteUserDataSource {
+    override suspend fun addUser(addUser: AddUser): AddUserResponse {
+        return api.addUser(addUser = addUser)
+    }
 
-    suspend fun addUser(addUser: AddUser): AddUserResponse
+    override suspend fun searchUser(query: String): SearchUserResponse {
+        return api.searchUser(query = query)
+    }
 
-    suspend fun searchUser(query:String): SearchUserResponse
-
-    suspend fun getUserById(id:String): GetUserByIdResponse
-
-    fun getAuthUser(): Flow<NetworkUser?>
-
-    suspend fun setAuthUser(user:NetworkUser)
-
-    suspend fun signOutUser()
-
-    suspend fun getChatUserById(id:String):NetworkUser?
-
-
-
+    override suspend fun getUserById(id: String): GetUserByIdResponse {
+        return api.getUserById(id = id)
+    }
 }

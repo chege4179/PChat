@@ -15,28 +15,21 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.sign_in
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.peterchege.pchat.core.api.requests.AddUser
-import com.peterchege.pchat.domain.models.User
 import com.peterchege.pchat.data.OfflineFirstUserRepository
-import com.peterchege.pchat.util.Constants
+import com.peterchege.pchat.domain.models.User
 import com.peterchege.pchat.util.Screens
+import com.peterchege.pchat.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
-
 import javax.inject.Inject
 
 
@@ -45,62 +38,47 @@ class SignInScreenViewModel @Inject constructor(
 
     private val offlineFirstUserRepository: OfflineFirstUserRepository,
 
-    ):ViewModel() {
+    ) : ViewModel() {
     private var _user = mutableStateOf<User?>(null)
     var user: State<User?> = _user
 
     private var _text = mutableStateOf("")
-    var text:State<String> = _text
+    var text: State<String> = _text
 
-    fun onChangeUser(user: User, navController: NavController){
+    private var _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
-        addUserToDatabase(user = user,navController = navController)
-
+    fun onChangeUser(user: User) {
+        addUserToDatabase(user = user)
     }
 
-    private  fun addUserToDatabase(user: User, navController:NavController){
-        Log.e("TEST","TEST")
+    private fun addUserToDatabase(user: User) {
         viewModelScope.launch {
-            try{
+            try {
                 val addUser = AddUser(
                     displayName = user.displayName ?: "",
                     email = user.email ?: "",
-                    imageUrl = user.imageUrl ,
+                    imageUrl = user.imageUrl,
                     userId = user.userId
                 )
                 val response = offlineFirstUserRepository.addUser(addUser = addUser)
-                response.user?.let {
-                    offlineFirstUserRepository.setAuthUser(user = it)
-
-                }
-                val authUser = offlineFirstUserRepository.getAuthUser()
-                authUser.collectLatest {
-                    if (it == null) return@collectLatest
-                    navController.navigate(Screens.DASHBOARD_SCREEN)
+                if (response.user != null) {
+                    offlineFirstUserRepository.setAuthUser(user = response.user)
+                    _eventFlow.emit(UiEvent.ShowSnackbar(message = "Login Successful"))
+                    _eventFlow.emit(UiEvent.Navigate(Screens.DASHBOARD_SCREEN))
                 }
 
-            }catch (e: HttpException){
-                Log.e("HTTP ERROR",e.localizedMessage ?: "Http error")
+            } catch (e: HttpException) {
+                _eventFlow.emit(UiEvent.ShowSnackbar(message = "Please check your internet connection"))
 
-            }catch (e:IOException){
-                Log.e("IO ERROR",e.localizedMessage ?: "IO error")
+            } catch (e: IOException) {
+                _eventFlow.emit(UiEvent.ShowSnackbar(message = "An unexpected error occurred"))
 
             }
         }
 
 
     }
-    fun getGoogleSignInClient(context: Context): GoogleSignInClient {
-        val signInOption = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestIdToken(Constants.CLIENT_ID)
-            .requestId()
-            .requestProfile()
-            .build()
-
-        return GoogleSignIn.getClient(context, signInOption)
-    }
-
 
 
 }

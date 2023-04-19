@@ -23,7 +23,9 @@ import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +41,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import com.peterchege.pchat.util.Screens
+import com.peterchege.pchat.util.UiEvent
+import com.peterchege.pchat.util.getGoogleSignInClient
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 
 @Preview
 @Composable
@@ -53,7 +59,23 @@ fun AccountScreen(
 ) {
     val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val scaffoldState = rememberScaffoldState()
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+                is UiEvent.Navigate -> {
+                    navController.navigate(route = event.route)
+                }
+            }
+        }
+    }
     Scaffold(
+        scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
@@ -116,7 +138,10 @@ fun AccountScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     onClick = {
-                        viewModel.logoutUser(navController = navController,context = context)
+                        val signInClient = getGoogleSignInClient(context = context)
+                        signInClient.signOut()
+                        viewModel.clearChats()
+                        navController.navigate(Screens.SIGN_IN_SCREEN)
                     }
 
                 ){

@@ -16,6 +16,7 @@
 package com.peterchege.pchat.presentation.ui.screens.sign_in
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -23,7 +24,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,12 +34,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.peterchege.pchat.R
 import com.peterchege.pchat.domain.models.User
 import com.peterchege.pchat.presentation.ui.components.GoogleSignInButton
 
 import com.peterchege.pchat.util.AuthResultContract
+import com.peterchege.pchat.util.Constants
+import com.peterchege.pchat.util.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 import kotlinx.coroutines.launch
 
@@ -49,6 +58,18 @@ fun SignInScreen(
 ){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val scaffoldState = rememberScaffoldState()
+
+    fun getGoogleSignInClient(context: Context): GoogleSignInClient {
+        val signInOption = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestIdToken(Constants.CLIENT_ID)
+            .requestId()
+            .requestProfile()
+            .build()
+
+        return GoogleSignIn.getClient(context, signInOption)
+    }
     val authResultLauncher = rememberLauncherForActivityResult(contract = AuthResultContract()) { task ->
             try {
                 val account = task?.getResult(ApiException::class.java)
@@ -66,7 +87,7 @@ fun SignInScreen(
                                 userId = it.id!!,
                                 imageUrl = it.photoUrl.toString()
                             )
-                            viewModel.onChangeUser(user = signInUser,navController = navController)
+                            viewModel.onChangeUser(user = signInUser)
                         }
                     }
                 }
@@ -74,6 +95,21 @@ fun SignInScreen(
                 Log.e("Api Exception",e.localizedMessage?: "API ERROR")
             }
         }
+
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest {
+            when(it){
+                is UiEvent.Navigate -> {
+                    navController.navigate(route = it.route)
+                }
+                is UiEvent.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = it.message
+                    )
+                }
+            }
+        }
+    }
 
 
     Scaffold(modifier = Modifier.fillMaxSize()) {
@@ -88,7 +124,7 @@ fun SignInScreen(
                 loadingText = "Signing In...",
                 isLoading = false,
                 onClick = {
-                    val signInClient = viewModel.getGoogleSignInClient(context=context)
+                    val signInClient = getGoogleSignInClient(context=context)
 
                     authResultLauncher.launch(1)
 

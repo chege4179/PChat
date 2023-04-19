@@ -44,5 +44,4 @@ class UserInfoRepository @Inject constructor(
             null
         }
     }
-
 }

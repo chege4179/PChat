@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.models
+package com.peterchege.pchat.domain.use_case
 
-data class Room(
-    val user1:String,
-    val user2:String,
+import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapMerge
+import javax.inject.Inject
 
-)
+class GetAuthUserUseCase @Inject constructor(
+    val offlineFirstUserRepository: OfflineFirstUserRepository,
+
+) {
+    operator fun invoke(): Flow<NetworkUser?> {
+        return offlineFirstUserRepository.getAuthUser()
+    }
+}

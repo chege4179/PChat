@@ -25,15 +25,26 @@ import kotlinx.coroutines.flow.Flow
 interface ChatRepository {
 
 
-    suspend fun getChatMessages(senderId: String, receiverId: String): GetMessagesResponse
+    fun getChats():Flow<List<ChatEntity>>
 
-    suspend fun getChats(userId: String): List<ChatEntity>
-
-    fun getSingleChatMessages(senderId: String, receiverId: String): Flow<List<MessageEntity>>
+    suspend fun insertChats(chats: List<NetworkUser>)
 
     suspend fun insertMessages(messages: List<Message>)
 
+    suspend fun getAllMessagesAcrossAllChats()
+
+    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
+
+    fun getChatMessagesBetween2Users(
+        senderId: String,
+        receiverId: String
+    ): Flow<List<MessageEntity>>
+
     suspend fun clearChats()
 
-    suspend fun insertChats(chats: List<NetworkUser>)
+
+
+
+
+
 }

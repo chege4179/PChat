@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.data.remote
 
-import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.core.api.PChatApi
+import com.peterchege.pchat.core.api.responses.GetMessagesResponse
+import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
+import javax.inject.Inject
 
-data class AddUserResponse (
-    val msg:String,
-    val success:Boolean,
-    val isExisting:Boolean,
-    val user:NetworkUser?
-        )
+class RemoteChatsDataSourceImpl @Inject constructor(
+    private val api: PChatApi
+) : RemoteChatsDataSource {
+
+
+    override suspend fun getChatMessages(
+        senderId: String,
+        receiverId: String
+    ): GetMessagesResponse {
+        return api.getChatMessages(senderId = senderId, receiverId = receiverId)
+    }
+
+}

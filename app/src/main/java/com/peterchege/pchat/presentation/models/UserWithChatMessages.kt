@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.presentation.models
 
+import com.peterchege.pchat.core.room.entities.MessageEntity
+import com.peterchege.pchat.domain.mappers.toExternalModel
+import com.peterchege.pchat.domain.models.Message
 import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.coroutines.flow.Flow
 
-data class AddUserResponse (
-    val msg:String,
-    val success:Boolean,
-    val isExisting:Boolean,
-    val user:NetworkUser?
-        )
+data class ChatCardInfo (
+    val authUser:NetworkUser,
+    val chatUserInfo: NetworkUser,
+    val lastMessage: Flow<Message?>
+
+)
+
+data class ChatWithSender(
+    val authUser:NetworkUser?,
+    val chatUserInfo: NetworkUser,
+)

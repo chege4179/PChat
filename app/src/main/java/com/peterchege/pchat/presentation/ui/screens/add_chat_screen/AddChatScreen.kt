@@ -35,8 +35,10 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
+import com.peterchege.pchat.domain.uiState.AddChatUiState
 import com.peterchege.pchat.presentation.ui.components.ProfileCard
 import com.peterchege.pchat.presentation.ui.theme.MainWhiteColor
 import com.peterchege.pchat.util.Screens
@@ -49,8 +51,11 @@ fun AddChatScreen(
     navController: NavController,
     viewModel:AddChatScreenViewModel = hiltViewModel()
 ){
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     Scaffold(
-        modifier = Modifier.fillMaxSize().padding(5.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -66,7 +71,6 @@ fun AddChatScreen(
                         text = "Search",
                     )
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
@@ -101,29 +105,25 @@ fun AddChatScreen(
                     )
                 }
             )
-            if (viewModel.isLoading.value){
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-
-            }else{
-                if (viewModel.searchUser.value.isEmpty()){
+            when(uiState){
+                is AddChatUiState.Idle -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "No users found")
+                        Text(
+                            text = uiState.message
+                        )
                     }
-                }else{
+                }
+                is AddChatUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(top = 10.dp)
                     ) {
-                        items(viewModel.searchUser.value) { user ->
+                        items(items = uiState.data.searchUsers) { user ->
                             ProfileCard(
                                 navController = navController,
                                 user =user,
@@ -135,9 +135,25 @@ fun AddChatScreen(
                         }
                     }
                 }
+                is AddChatUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                }
+                is AddChatUiState.Error -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = uiState.errorMessage
+                        )
+                    }
+                }
             }
-
-
         }
     }
 }

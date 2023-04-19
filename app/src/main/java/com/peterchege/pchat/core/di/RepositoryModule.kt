@@ -23,6 +23,10 @@ import com.peterchege.pchat.data.OfflineFirstChatRepository
 import com.peterchege.pchat.data.OfflineFirstUserRepository
 import com.peterchege.pchat.domain.repository.ChatRepository
 import com.peterchege.pchat.domain.repository.UserRepository
+import com.peterchege.pchat.domain.repository.local.LocalChatsDataSource
+import com.peterchege.pchat.domain.repository.local.LocalUserDataSource
+import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
+import com.peterchege.pchat.domain.repository.remote.RemoteUserDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,34 +41,37 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideChatRepository(
-        api: PChatApi,
-        db: PChatDatabase,
-        userRepository: UserInfoRepository,
-        @IoDispatcher ioDispatcher: CoroutineDispatcher
+        remoteChatsDataSource: RemoteChatsDataSource,
+        localChatsDataSource: LocalChatsDataSource,
+        remoteUserDataSource: RemoteUserDataSource,
+        localUserDataSource : LocalUserDataSource,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
     ): ChatRepository {
         return OfflineFirstChatRepository(
-            api = api,
-            db = db,
+            remoteChatsDataSource = remoteChatsDataSource,
+            remoteUserDataSource = remoteUserDataSource,
+            localChatsDataSource = localChatsDataSource,
+            localUserDataSource = localUserDataSource,
+            defaultDispatcher = defaultDispatcher,
             ioDispatcher = ioDispatcher,
-            userInfoRepository = userRepository
         )
     }
 
     @Provides
     @Singleton
     fun provideUserRepository(
-        api: PChatApi,
-        db: PChatDatabase,
-        auth:FirebaseAuth,
-        userRepository: UserInfoRepository,
+        remoteUserDataSource: RemoteUserDataSource,
+        localUserDataSource : LocalUserDataSource,
+        localChatsDataSource: LocalChatsDataSource,
         @IoDispatcher ioDispatcher: CoroutineDispatcher
     ): UserRepository {
         return OfflineFirstUserRepository(
-            api = api,
-            db = db,
+            remoteUserDataSource = remoteUserDataSource,
+            localUserDataSource = localUserDataSource,
             ioDispatcher = ioDispatcher,
-            auth = auth,
-            userInfoRepository = userRepository
+            localChatsDataSource = localChatsDataSource,
+
         )
     }
 }

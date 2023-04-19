@@ -30,24 +30,23 @@ import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberImagePainter
 import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.presentation.models.ChatCardInfo
+
 
 
 @Composable
 fun ChatItemCard(
-    otherUserName: String,
-    lastMessageText: String,
-    lastMessageTimestamp:String,
-    imageUrl: String,
+    chatCardInfo: ChatCardInfo,
     onChatClicked: (String) -> Unit,
-    chatItem: NetworkUser,
-
-) {
+    ) {
+    val message = chatCardInfo.lastMessage.collectAsStateWithLifecycle(initialValue = null).value
     Row(
         Modifier
             .clickable {
-                onChatClicked(chatItem.userId)
+                onChatClicked(chatCardInfo.chatUserInfo.userId)
             }
             .padding(horizontal = 16.dp, vertical = 8.dp)
 
@@ -56,16 +55,16 @@ fun ChatItemCard(
             modifier = Modifier
                 .width(48.dp)
                 .height(48.dp)
-                .clip(CircleShape)
-            ,
+                .clip(CircleShape),
             painter = rememberImagePainter(
-                data = imageUrl,
+                data = chatCardInfo.chatUserInfo.imageUrl,
                 builder = {
                     crossfade(true)
 
                 },
             ),
-            contentDescription = "")
+            contentDescription = ""
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Column(Modifier.padding(horizontal = 8.dp)) {
             Row(
@@ -73,19 +72,19 @@ fun ChatItemCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = otherUserName,
+                    text = chatCardInfo.chatUserInfo.fullName,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 17.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = lastMessageTimestamp,
+                    text = message?.sentAt ?:"",
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp
                 )
             }
             Text(
-                text = lastMessageText,
+                text = message?.message ?: "",
                 maxLines = 1,
                 fontSize = 15.sp,
                 color = Gray

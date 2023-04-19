@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.domain.use_case
 
-import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.domain.repository.ChatRepository
+import javax.inject.Inject
 
-data class AddUserResponse (
-    val msg:String,
-    val success:Boolean,
-    val isExisting:Boolean,
-    val user:NetworkUser?
-        )
+class SyncChatsAndMessagesUseCases @Inject constructor(
+    private val offlineFirstChatRepository: ChatRepository
+
+) {
+    suspend operator fun invoke() {
+        offlineFirstChatRepository.getAllMessagesAcrossAllChats()
+
+    }
+}

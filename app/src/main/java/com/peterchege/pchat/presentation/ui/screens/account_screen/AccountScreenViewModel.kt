@@ -25,9 +25,12 @@ import com.peterchege.pchat.domain.repository.ChatRepository
 import com.peterchege.pchat.domain.repository.UserRepository
 import com.peterchege.pchat.util.Constants
 import com.peterchege.pchat.util.Screens
+import com.peterchege.pchat.util.UiEvent
 import com.peterchege.pchat.util.getGoogleSignInClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -40,6 +43,10 @@ class AccountScreenViewModel @Inject constructor(
     private val offlineFirstChatRepository: ChatRepository
 
 ) :ViewModel(){
+
+    val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
     val authUser = offlineFirstUserRepository.getAuthUser()
         .stateIn(
             scope = viewModelScope,
@@ -47,17 +54,14 @@ class AccountScreenViewModel @Inject constructor(
             initialValue = null
         )
 
-    fun logoutUser(navController: NavController, context: Context){
-        val signInClient = getGoogleSignInClient(context = context)
-        signInClient.signOut()
-        offlineFirstUserRepository.signOutUser()
+    fun clearChats (){
+
         viewModelScope.launch {
             offlineFirstChatRepository.clearChats()
+            offlineFirstUserRepository.signOutUser()
         }
-        navController.navigate(Screens.SIGN_IN_SCREEN)
-
-
     }
+
 
 
 }

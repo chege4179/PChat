@@ -16,8 +16,31 @@
 package com.peterchege.pchat.core.di
 
 import android.app.Application
+import com.peterchege.pchat.BuildConfig
+import com.peterchege.pchat.core.crashlytics.CrashlyticsTree
 import dagger.hilt.android.HiltAndroidApp
+import org.jetbrains.annotations.NotNull
+import timber.log.Timber
 
 
 @HiltAndroidApp
-class PChatApp :Application()
+class PChatApp :Application(){
+    override fun onCreate() {
+        super.onCreate()
+        initTimber()
+    }
+}
+
+
+private fun initTimber() = when {
+    BuildConfig.DEBUG -> {
+        Timber.plant(object : Timber.DebugTree() {
+            override fun createStackElementTag(@NotNull element: StackTraceElement): String {
+                return super.createStackElementTag(element) + ":" + element.lineNumber
+            }
+        })
+    }
+    else -> {
+        Timber.plant(CrashlyticsTree())
+    }
+}

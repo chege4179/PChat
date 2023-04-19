@@ -23,17 +23,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.peterchege.pchat.core.room.entities.MessageEntity
-import com.peterchege.pchat.data.OfflineFirstChatRepository
-import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.domain.mappers.toEntity
 import com.peterchege.pchat.domain.mappers.toExternalModel
 import com.peterchege.pchat.domain.models.Message
 import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.domain.use_case.AddMessageUseCase
+import com.peterchege.pchat.domain.use_case.GetAuthUserUseCase
+import com.peterchege.pchat.domain.use_case.GetMessageReceiverUseCase
+import com.peterchege.pchat.domain.use_case.GetMessagesUseCase
 import com.peterchege.pchat.util.SocketHandler.mSocket
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
@@ -47,18 +51,18 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatScreenViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val offlineFirstUserRepository: OfflineFirstUserRepository,
-
-    private val offlineFirstChatRepository: OfflineFirstChatRepository,
+    private val getAuthUserUseCase: GetAuthUserUseCase,
+    private val addMessageUseCase: AddMessageUseCase,
+    private val getMessagesUseCase: GetMessagesUseCase,
+    private val getMessageReceiverUseCase: GetMessageReceiverUseCase,
 
     ) : ViewModel() {
-    val authUser = offlineFirstUserRepository.getAuthUser()
+    val authUser = getAuthUserUseCase()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = null
         )
-
 
     private val _activeChatUserId = mutableStateOf("")
     val activeChatUserId: State<String> = _activeChatUserId
@@ -84,19 +88,11 @@ class ChatScreenViewModel @Inject constructor(
     private val _errorMsg = mutableStateOf("")
     val errorMsg: State<String> = _errorMsg
 
+
     init {
         savedStateHandle.get<String>("id")?.let {
             getUserById(id = it)
 
-        }
-
-        mSocket.on("roomJoined") { room ->
-            if (room[0] != null) {
-                val roomId = room[0] as String
-                Log.e("rooom Id", roomId)
-                _roomId.value = roomId
-
-            }
         }
         mSocket.on("receiveMessage") { messagePayload ->
             viewModelScope.launch {
@@ -119,7 +115,7 @@ class ChatScreenViewModel @Inject constructor(
 
     private fun addMessage(message: Message) {
         viewModelScope.launch {
-            offlineFirstChatRepository.insertMessages(messages = listOf<Message>(message))
+            addMessageUseCase(message)
 
 
             lateinit var initialMessages: List<Message>;
@@ -140,13 +136,20 @@ class ChatScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 authUser.collectLatest {
-                    val localMessages = offlineFirstChatRepository.getSingleChatMessages(
-                        senderId = it!!.userId,
-                        receiverId = activeChatUser.value!!.userId
-                    )
-                    _isLoading.value = false
-                    _isError.value = false
-                    _messages.value = localMessages
+                    if ((it != null) && (activeChatUser.value != null)) {
+                        val localMessages = getMessagesUseCase(
+                            senderId = it.userId,
+                            receiverId = activeChatUser.value!!.userId
+                        )
+                        _isLoading.value = false
+                        _isError.value = false
+                        _messages.value = localMessages.map { messages ->
+                            messages.map { message ->
+                                message.toEntity()
+                            }
+                        }
+                    }
+
                 }
 
 
@@ -172,19 +175,10 @@ class ChatScreenViewModel @Inject constructor(
     private fun getUserById(id: String) {
         viewModelScope.launch {
             try {
-                val response = offlineFirstUserRepository.getUserById(id = id)
-                if (response.success) {
-                    _activeChatUser.value = NetworkUser(
-                        userId = response.user.userId,
-                        googleId = response.user.googleId,
-                        fullName = response.user.fullName,
-                        email = response.user.email,
-                        imageUrl = response.user.imageUrl
-                    )
-                    Log.e("User", response.user.toString())
-                    getMessages()
+                val user = getMessageReceiverUseCase(userId = id)
+                _activeChatUser.value = user
 
-                }
+                getMessages()
 
             } catch (e: HttpException) {
                 Log.e("HTTP ERROR", e.localizedMessage ?: "Http error")
@@ -210,6 +204,7 @@ class ChatScreenViewModel @Inject constructor(
                     messageId = UUID.randomUUID().toString()
                 )
                 _messageText.value = ""
+
                 mSocket.emit("sendMessage", Gson().toJson(message))
             }
 

@@ -15,76 +15,30 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.dashboard.chat.all_chats_screen
 
-import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.peterchege.pchat.domain.mappers.toExternalModel
-import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.repository.ChatRepository
-import com.peterchege.pchat.domain.repository.UserRepository
+import com.peterchege.pchat.domain.use_case.GetUserChatsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import okio.IOException
-import retrofit2.HttpException
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 
 @HiltViewModel
 class AllChatsScreenViewModel @Inject constructor(
-    private val offlineFirstChatRepository: ChatRepository,
-    private val offlineFirstUserRepository: UserRepository,
+    private val getUserChats: GetUserChatsUseCase
+
+) : ViewModel() {
+
+    val chats = getUserChats()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
 
 
-    ) : ViewModel() {
-
-    private val _isFound = mutableStateOf(true)
-    val isFound: State<Boolean> = _isFound
-
-    private val _isLoading = mutableStateOf(false)
-    val isLoading: State<Boolean> = _isLoading
-
-    private val _isError = mutableStateOf(false)
-    val isError: State<Boolean> = _isError
-
-    private val _errorMsg = mutableStateOf("")
-    val errorMsg: State<String> = _errorMsg
-
-    private val _chats = mutableStateOf<List<NetworkUser>>(emptyList())
-    val chats: State<List<NetworkUser>> = _chats
-
-    init {
-        getChats()
-    }
-
-    private fun getChats() {
-        viewModelScope.launch {
-            try {
-                offlineFirstUserRepository.getAuthUser().collectLatest { user ->
-                    val offlineChats =
-                        user?.let { offlineFirstChatRepository.getChats(userId = it.userId) }
-                            ?: return@collectLatest
-
-                    _chats.value = offlineChats.map { it.toExternalModel() }
-                    _isLoading.value = false
-                    _isError.value = false
-                }
-            } catch (e: HttpException) {
-                _isLoading.value = false
-                _isError.value = true
-                _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
-                Log.e("http error", e.localizedMessage ?: "a http error occurred")
-
-            } catch (e: IOException) {
-                _isLoading.value = false
-                _isError.value = true
-                _errorMsg.value = e.localizedMessage ?: "An unexpected error occurred"
-                Log.e("io error", e.localizedMessage ?: "a http error occurred")
-            }
-        }
-    }
 
 
 }

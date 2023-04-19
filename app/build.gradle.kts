@@ -5,6 +5,8 @@ plugins {
     id ("dagger.hilt.android.plugin")
     id ("com.google.gms.google-services")
     id ("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.devtools.ksp") version "1.8.10-1.0.9"
+    id ("com.google.firebase.crashlytics")
 }
 
 android {
@@ -53,7 +55,11 @@ android {
         }
     }
 }
-
+kotlin {
+    sourceSets.configureEach {
+        kotlin.srcDir("$buildDir/generated/ksp/$name/kotlin/")
+    }
+}
 
 
 dependencies {
@@ -143,10 +149,17 @@ dependencies {
         exclude(group = "org.json", module = "json")
     }
 
+    implementation("com.github.skydoves:sealedx-core:1.0.1")
+    ksp("com.github.skydoves:sealedx-processor:1.0.1")
     debugImplementation ("com.github.chuckerteam.chucker:library:3.5.2")
     releaseImplementation ("com.github.chuckerteam.chucker:library-no-op:3.5.2")
 
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
+    implementation ("com.google.firebase:firebase-crashlytics-ktx:18.3.5")
+    implementation ("com.google.firebase:firebase-analytics-ktx:21.2.0")
+    //timber
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
 
 

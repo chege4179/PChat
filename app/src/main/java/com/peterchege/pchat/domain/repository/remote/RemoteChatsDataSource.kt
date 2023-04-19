@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.domain.repository.remote
 
-import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.core.api.responses.GetMessagesResponse
 
-data class AddUserResponse (
-    val msg:String,
-    val success:Boolean,
-    val isExisting:Boolean,
-    val user:NetworkUser?
-        )
+interface RemoteChatsDataSource {
+
+    suspend fun getChatMessages(senderId: String, receiverId: String): GetMessagesResponse
+
+}

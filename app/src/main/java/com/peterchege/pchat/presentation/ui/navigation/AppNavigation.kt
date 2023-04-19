@@ -37,10 +37,10 @@ fun AppNavigation(
 
     val user = viewModel.user.collectAsStateWithLifecycle()
     fun getInitialRoute(): String {
-        return if (user.value === null) {
+        return if (user.value == null) {
             Screens.SIGN_IN_SCREEN
         } else {
-            if (user.value?.email === "") {
+            if (user.value?.email == "") {
                 Screens.SIGN_IN_SCREEN
             } else {
                 Screens.DASHBOARD_SCREEN
