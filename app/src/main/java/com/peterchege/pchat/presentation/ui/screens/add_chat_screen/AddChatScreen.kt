@@ -35,25 +35,54 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.presentation.ui.components.ProfileCard
-import com.peterchege.pchat.presentation.ui.theme.MainWhiteColor
-import com.peterchege.pchat.util.Screens
 
 
+@Composable
+fun AddChatScreen(
+    navigateToChatScreen:(String,String) -> Unit,
+    viewModel:AddChatScreenViewModel = hiltViewModel()
+){
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val authUser by viewModel.authUser.collectAsStateWithLifecycle()
+
+
+    AddChatScreenContent(
+        navigateToChatScreen = navigateToChatScreen,
+        uiState =uiState ,
+        authUser = authUser,
+        searchTerm = viewModel.searchTerm.value,
+        onChangeSearchTerm = viewModel::onChangeSearchTerm
+    )
+}
+@Preview
+@Composable
+fun AddChatScreenPreview(){
+    AddChatScreenContent(
+        navigateToChatScreen = { it1,it2 ->  },
+        uiState = AddChatUiState.ResultsFound(users = emptyList()),
+        authUser = null,
+        searchTerm = "",
+        onChangeSearchTerm = {  }
+    )
+}
 @OptIn(ExperimentalCoilApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun AddChatScreen(
-    navController: NavController,
-    viewModel:AddChatScreenViewModel = hiltViewModel()
+fun AddChatScreenContent(
+    navigateToChatScreen:(String,String) -> Unit,
+    uiState:AddChatUiState,
+    authUser:NetworkUser?,
+    searchTerm:String,
+    onChangeSearchTerm:(String) -> Unit,
 ){
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -64,9 +93,9 @@ fun AddChatScreen(
 
         ) {
             TextField(
-                value = viewModel.searchTerm.value,
+                value = searchTerm,
                 onValueChange = {
-                    viewModel.onChangeSearchTerm(it)
+                    onChangeSearchTerm(it)
                 },
                 placeholder = {
                     Text(
@@ -86,11 +115,11 @@ fun AddChatScreen(
                 ),
                 colors = TextFieldDefaults.textFieldColors(
                     textColor = Color.White,
-                    disabledTextColor = MainWhiteColor,
-                    backgroundColor = MainWhiteColor,
-                    focusedIndicatorColor = MainWhiteColor,
-                    unfocusedIndicatorColor = MainWhiteColor,
-                    disabledIndicatorColor = MainWhiteColor
+                    disabledTextColor = Color.LightGray,
+                    backgroundColor = Color.LightGray,
+                    focusedIndicatorColor = Color.LightGray,
+                    unfocusedIndicatorColor = Color.LightGray,
+                    disabledIndicatorColor = Color.LightGray
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 maxLines = 1,
@@ -127,11 +156,9 @@ fun AddChatScreen(
                     ) {
                         items(items = uiState.users) { user ->
                             ProfileCard(
-                                navController = navController,
                                 user =user,
                                 onProfileNavigate = {
-                                    navController.navigate(Screens.CHAT_SCREEN + "/$it/${authUser!!.userId}")
-
+                                    navigateToChatScreen(it,authUser!!.userId)
                                 }
                             )
                         }

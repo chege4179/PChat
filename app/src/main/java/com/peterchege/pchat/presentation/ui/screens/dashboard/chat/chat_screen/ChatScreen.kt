@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,18 +39,36 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.peterchege.pchat.domain.mappers.toExternalModel
+import com.peterchege.pchat.presentation.ui.components.LoadingComponent
 import com.peterchege.pchat.presentation.ui.components.MessageCard
 import com.peterchege.pchat.presentation.ui.components.MessageInput
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ChatScreen(
-    navController: NavController,
     viewModel: ChatScreenViewModel = hiltViewModel(),
+){
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ChatScreenContent(
+        uiState = uiState,
+        message = viewModel.messageText.value,
+        sendMessage = viewModel::sendMessage,
+        onChangeMessageText = viewModel::onChangeMessageText
+    )
+}
+
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+fun ChatScreenContent(
+    uiState:ChatsScreenUiState,
+    message:String,
+    sendMessage:() -> Unit,
+    onChangeMessageText:(String) -> Unit,
+
 ){
     val scrollState = rememberLazyListState()
     val scaffoldState = rememberScaffoldState()
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+
 
     LaunchedEffect(key1 = true){
         if (uiState is ChatsScreenUiState.Success){
@@ -108,7 +127,7 @@ fun ChatScreen(
 
                                     }) {
                                     Icon(
-                                        Icons.Filled.Call,
+                                        imageVector = Icons.Filled.Call,
                                         contentDescription = "Call",
                                         Modifier.size(26.dp)
 
@@ -119,7 +138,7 @@ fun ChatScreen(
 
                                     }) {
                                     Icon(
-                                        Icons.Filled.Settings,
+                                        imageVector = Icons.Filled.Settings,
                                         contentDescription = "Settings",
                                         Modifier.size(26.dp)
 
@@ -141,11 +160,7 @@ fun ChatScreen(
     ) {
         when(uiState){
             is ChatsScreenUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+                LoadingComponent()
             }
             is ChatsScreenUiState.Error -> {
                 Box(
@@ -176,7 +191,11 @@ fun ChatScreen(
                             )
                         }
                     }
-                    MessageInput()
+                    MessageInput(
+                        sendMessage = sendMessage,
+                        onChangeMessageText = onChangeMessageText,
+                        messageText = message,
+                    )
 
 
                 }

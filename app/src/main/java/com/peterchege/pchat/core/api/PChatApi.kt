@@ -35,6 +35,11 @@ interface PChatApi {
     suspend fun getChatMessages(
         @Path("senderId") senderId: String,
         @Path("receiverId") receiverId: String
+    ): Response<GetMessagesBetweenTwoUsers>
+
+    @GET("/chat/message/all/{userId}")
+    suspend fun getAllMessages(
+        @Path("userId") senderId: String,
     ): Response<GetMessagesResponse>
 
 

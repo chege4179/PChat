@@ -18,6 +18,7 @@ package com.peterchege.pchat.presentation.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,20 +52,48 @@ fun AppNavigation(
         navController = navController,
         startDestination = getInitialRoute()
     ) {
-        composable(Screens.SIGN_IN_SCREEN) {
-            SignInScreen(navController = navController)
+        composable(route = Screens.SIGN_IN_SCREEN) {
+            SignInScreen(navigateToDashBoardScreen = navController::navigateToDashboardScreen)
         }
-        composable(Screens.DASHBOARD_SCREEN) {
-            DashBoardScreen(navController = navController)
+        composable(route = Screens.DASHBOARD_SCREEN) {
+            DashBoardScreen(
+                navigateToAddChatScreen = navController::navigateToAddChatScreen,
+                navigateToAccountScreen = navController::navigateToAccountScreen,
+                navigateToChatScreen = navController::navigateToChatScreen,
+            )
         }
-        composable(Screens.ADD_CHAT_SCREEN) {
-            AddChatScreen(navController = navController)
+        composable(route = Screens.ADD_CHAT_SCREEN) {
+            AddChatScreen(
+                navigateToChatScreen = navController::navigateToChatScreen,
+            )
         }
-        composable(Screens.CHAT_SCREEN + "/{receiverId}/{senderId}") {
-            ChatScreen(navController = navController)
+        composable(route = Screens.CHAT_SCREEN + "/{receiverId}/{senderId}") {
+            ChatScreen()
         }
-        composable(Screens.ACCOUNT_SCREEN) {
-            AccountScreen(navController = navController)
+        composable(route = Screens.ACCOUNT_SCREEN) {
+            AccountScreen(
+                navigateToSignInScreen = navController::navigateToSignInScreen
+            )
         }
     }
+}
+
+
+fun NavController.navigateToSignInScreen(){
+    navigate(route = Screens.SIGN_IN_SCREEN)
+}
+fun NavController.navigateToDashboardScreen(){
+    navigate(route = Screens.DASHBOARD_SCREEN)
+}
+
+fun NavController.navigateToAddChatScreen(){
+    navigate(route = Screens.ADD_CHAT_SCREEN)
+}
+
+fun NavController.navigateToChatScreen(receiverId:String,senderId:String){
+    navigate(route = Screens.CHAT_SCREEN + "/${receiverId}/${senderId}")
+}
+
+fun NavController.navigateToAccountScreen(){
+    navigate(route = Screens.ACCOUNT_SCREEN)
 }

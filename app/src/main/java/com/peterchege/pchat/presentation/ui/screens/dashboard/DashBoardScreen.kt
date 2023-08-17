@@ -17,54 +17,93 @@ package com.peterchege.pchat.presentation.ui.screens.dashboard
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.PagerDefaults
-import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.SubcomposeAsyncImage
-import coil.compose.rememberImagePainter
-
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.presentation.ui.screens.dashboard.chat.all_chats_screen.AllChatsScreen
 import com.peterchege.pchat.presentation.ui.screens.dashboard.status.all_status_screen.AllStatusScreen
-import com.peterchege.pchat.presentation.ui.theme.testColor
-import com.peterchege.pchat.util.Screens
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+
+@Preview
+@Composable
+fun DashBoardScreenContentPreview(){
+    DashBoardScreenContent(
+        navigateToAddChatScreen = { },
+        navigateToChatScreen = { it1,it2 ->  },
+        navigateToAccountScreen = {  },
+        isChatsSyncing = false,
+        isMessagesSyncing =false ,
+        authUser = null,
+        startRefreshingChats = {  }
+    )
+}
+
+
+
+@Composable
+fun DashBoardScreen(
+    navigateToAddChatScreen:() -> Unit,
+    navigateToChatScreen:(String,String) -> Unit,
+    navigateToAccountScreen:() -> Unit,
+    viewModel: DashBoardViewModel = hiltViewModel(),
+){
+    val isMessagesSyncing by viewModel.isMessagesSyncing.collectAsStateWithLifecycle()
+    val isChatsSyncing by viewModel.isChatsSyncing.collectAsStateWithLifecycle()
+    val authUser by viewModel.authUser.collectAsStateWithLifecycle()
+
+
+    DashBoardScreenContent(
+        navigateToAddChatScreen = navigateToAddChatScreen,
+        navigateToChatScreen = navigateToChatScreen,
+        navigateToAccountScreen = navigateToAccountScreen,
+        isChatsSyncing = isChatsSyncing,
+        isMessagesSyncing =isMessagesSyncing ,
+        authUser = authUser,
+        startRefreshingChats = viewModel::startRefreshingChats
+    )
+}
+
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @ExperimentalCoilApi
 @Composable
-fun DashBoardScreen(
-    navController: NavController,
-    viewModel: DashBoardViewModel = hiltViewModel(),
+fun DashBoardScreenContent(
+    navigateToAddChatScreen:() -> Unit,
+    navigateToChatScreen:(String,String) -> Unit,
+    navigateToAccountScreen:() -> Unit,
+    isChatsSyncing:Boolean,
+    isMessagesSyncing:Boolean,
+    authUser:NetworkUser?,
+    startRefreshingChats:() -> Unit,
 ) {
-    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
+
     val scaffoldState = rememberScaffoldState()
+
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
@@ -89,7 +128,7 @@ fun DashBoardScreen(
                                 .height(36.dp)
                                 .clip(CircleShape)
                                 .clickable {
-                                    navController.navigate(Screens.ACCOUNT_SCREEN)
+                                    navigateToAccountScreen()
                                 }
                             ,
                             contentDescription = "Profile Photo URL"
@@ -111,14 +150,13 @@ fun DashBoardScreen(
             initialPageOffsetFraction = 0f,
             pageCount = { 2 },
         )
-        Column(
-            modifier = Modifier.background(Color.White)
+        Column(modifier = Modifier.background(Color.White)
         ) {
             Tabs(pagerState = pagerState)
             TabsContent(
                 pagerState = pagerState,
-                navController = navController
-
+                navigateToChatScreen = navigateToChatScreen,
+                navigateToAddChatScreen = navigateToAddChatScreen
             )
         }
 
@@ -129,34 +167,19 @@ fun DashBoardScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Tabs(pagerState: PagerState) {
+fun Tabs(pagerState: PagerState,) {
     val list = listOf("Chats","Status")
     val scope = rememberCoroutineScope()
 
     TabRow(
         selectedTabIndex = pagerState.currentPage,
-        backgroundColor = Color.White,
-        contentColor = Color.White,
-        divider = {
-            TabRowDefaults.Divider(
-                thickness = 2.dp,
-                color = Color.White
-            )
-        },
-        indicator = { tabPositions ->
-            TabRowDefaults.Indicator(
-
-                height = 2.dp,
-                color = testColor
-            )
-        }
     ) {
         list.forEachIndexed { index, _->
             Tab(
                 text = {
                     Text(
-                        list[index],
-                        color = if (pagerState.currentPage == index) testColor else Color.LightGray
+                        text = list[index],
+                        style = MaterialTheme.typography.body1
                     )
                 },
                 selected = pagerState.currentPage == index,
@@ -172,7 +195,11 @@ fun Tabs(pagerState: PagerState) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TabsContent(pagerState: PagerState, navController: NavController) {
+fun TabsContent(
+    pagerState: PagerState,
+    navigateToAddChatScreen:() -> Unit,
+    navigateToChatScreen:(String,String) -> Unit,
+) {
     HorizontalPager(
         modifier = Modifier,
         state = pagerState,
@@ -185,9 +212,36 @@ fun TabsContent(pagerState: PagerState, navController: NavController) {
         key = null,
     ){
         when (pagerState.currentPage) {
-            0 -> AllChatsScreen(navController = navController)
-            1 -> AllStatusScreen(navController = navController)
+            0 -> AllChatsScreen(
+                navigateToAddChatScreen = navigateToAddChatScreen,
+                navigateToChatScreen = navigateToChatScreen
+            )
+            1 -> AllStatusScreen()
 
         }
     }
 }
+
+
+
+//@Composable
+//fun TextTabs() {
+//    var state by remember { mutableStateOf(0) }
+//    val titles = listOf("TAB 1", "TAB 2", "TAB 3 WITH LOTS OF TEXT")
+//    Column {
+//        TabRow(selectedTabIndex = state) {
+//            titles.forEachIndexed { index, title ->
+//                Tab(
+//                    text = { Text(title) },
+//                    selected = state == index,
+//                    onClick = { state = index }
+//                )
+//            }
+//        }
+//        Text(
+//            modifier = Modifier.align(Alignment.CenterHorizontally),
+//            text = "Text tab ${state + 1} selected",
+//            style = MaterialTheme.typography.body1
+//        )
+//    }
+//}

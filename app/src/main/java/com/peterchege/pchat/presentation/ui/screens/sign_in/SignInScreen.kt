@@ -53,33 +53,28 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SignInScreen(
-    navController: NavController,
+    navigateToDashBoardScreen: () -> Unit,
     viewModel: SignInScreenViewModel = hiltViewModel(),
-){
+) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
 
-    fun getGoogleSignInClient(context: Context): GoogleSignInClient {
-        val signInOption = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestIdToken(Constants.CLIENT_ID)
-            .requestId()
-            .requestProfile()
-            .build()
 
-        return GoogleSignIn.getClient(context, signInOption)
-    }
-    val authResultLauncher = rememberLauncherForActivityResult(contract = AuthResultContract()) { task ->
+    val authResultLauncher =
+        rememberLauncherForActivityResult(contract = AuthResultContract()) { task ->
             try {
                 val account = task?.getResult(ApiException::class.java)
                 if (account == null) {
-                    Toast.makeText(context,"Your devices need google play services to login using google",Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "Your devices need google play services to login using google",
+                        Toast.LENGTH_LONG
+                    ).show()
 
                 } else {
                     coroutineScope.launch {
-                        Log.e("Email",account.email?:"No email")
-                        Log.e("Name",account.displayName?:"No displayName")
+
                         account.let {
                             val signInUser = User(
                                 displayName = it.displayName!!,
@@ -92,16 +87,17 @@ fun SignInScreen(
                     }
                 }
             } catch (e: ApiException) {
-                Log.e("Api Exception",e.localizedMessage?: "API ERROR")
+
             }
         }
 
-    LaunchedEffect(key1 = true){
+    LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest {
-            when(it){
+            when (it) {
                 is UiEvent.Navigate -> {
-                    navController.navigate(route = it.route)
+                    navigateToDashBoardScreen()
                 }
+
                 is UiEvent.ShowSnackbar -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = it.message
@@ -127,10 +123,7 @@ fun SignInScreen(
                 loadingText = "Signing In...",
                 isLoading = false,
                 onClick = {
-
-
-                    authResultLauncher.launch(1)
-
+                    authResultLauncher.launch( 1)
                 }
             )
         }

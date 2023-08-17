@@ -41,7 +41,9 @@ import com.peterchege.pchat.presentation.ui.screens.dashboard.chat.chat_screen.C
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MessageInput(
-    viewModel: ChatScreenViewModel = hiltViewModel() // 1
+    messageText:String,
+    onChangeMessageText:(String) -> Unit,
+    sendMessage:() -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -50,9 +52,9 @@ fun MessageInput(
         ) {
 
         OutlinedTextField(
-            value = viewModel.messageText.value,
+            value = messageText,
             onValueChange = {
-                viewModel.onChangeMessageText(it)
+                onChangeMessageText(it)
             },
             singleLine = false,
             maxLines = 5,
@@ -72,8 +74,8 @@ fun MessageInput(
                 .width(45.dp)
                 .clip(CircleShape),
             shape = RoundedCornerShape(20.dp),
-            onClick = { viewModel.sendMessage() },
-            enabled = viewModel.messageText.value.isNotBlank(),
+            onClick = { sendMessage() },
+            enabled = messageText.isNotBlank(),
         ) {
             Icon( // 6
                 modifier = Modifier.size(35.dp),

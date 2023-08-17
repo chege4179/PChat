@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.util
+package com.peterchege.pchat.presentation.ui.components
 
-import androidx.work.WorkInfo
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 
-object WorkConstants {
+@Composable
+fun LoadingComponent() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    }
 
-    const val NOTIFICATION_CHANNEL = "notification_channel"
-
-    const val syncMessagesWorker = "sync_messages"
-    const val syncChatsWorker = "sync_chats"
 }
-
-val List<WorkInfo>.anyRunning get() = any { it.state == WorkInfo.State.RUNNING }

@@ -16,6 +16,8 @@
 package com.peterchege.pchat.core.di
 
 import android.content.Context
+import com.peterchege.pchat.core.work.sync_chats.SyncChatsWorkManager
+import com.peterchege.pchat.core.work.sync_chats.SyncChatsWorkManagerImpl
 import com.peterchege.pchat.core.work.sync_messages.SyncMessagesWorkManager
 import com.peterchege.pchat.core.work.sync_messages.SyncMessagesWorkManagerImpl
 import dagger.Module
@@ -36,6 +38,15 @@ object WorkManagerModule {
         @ApplicationContext context: Context,
     ): SyncMessagesWorkManager {
         return SyncMessagesWorkManagerImpl(context = context)
+
+    }
+
+    @Provides
+    @Singleton
+    fun provideSyncChatsWorkManager(
+        @ApplicationContext context: Context,
+    ): SyncChatsWorkManager {
+        return SyncChatsWorkManagerImpl(context = context)
 
     }
 }

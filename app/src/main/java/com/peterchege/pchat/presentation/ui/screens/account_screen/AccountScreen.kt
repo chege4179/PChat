@@ -26,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,36 +41,59 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport.Session.User
+import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.util.Screens
 import com.peterchege.pchat.util.UiEvent
 import com.peterchege.pchat.util.getGoogleSignInClient
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 
 @Preview
 @Composable
-fun AccountScreenPreview(){
-    AccountScreen(navController = rememberNavController())
+fun AccountScreenPreview() {
+    AccountScreen(navigateToSignInScreen = { })
 }
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+
 @Composable
 fun AccountScreen(
-    navController: NavController,
+    navigateToSignInScreen: () -> Unit,
     viewModel: AccountScreenViewModel = hiltViewModel()
 ) {
-    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
+    val authUser by viewModel.authUser.collectAsStateWithLifecycle()
+
+    AccountScreenContent(
+        navigateToSignInScreen = navigateToSignInScreen,
+        authUser = authUser,
+        eventFlow = viewModel.eventFlow,
+        clearChats = viewModel::clearChats
+    )
+}
+
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+fun AccountScreenContent(
+    navigateToSignInScreen: () -> Unit,
+    authUser: NetworkUser?,
+    eventFlow: SharedFlow<UiEvent>,
+    clearChats: () -> Unit,
+) {
+
     val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
-    LaunchedEffect(key1 = true){
-        viewModel.eventFlow.collectLatest { event ->
+    LaunchedEffect(key1 = true) {
+        eventFlow.collectLatest { event ->
             when (event) {
                 is UiEvent.ShowSnackbar -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
                     )
                 }
+
                 is UiEvent.Navigate -> {
-                    navController.navigate(route = event.route)
+
                 }
             }
         }
@@ -105,9 +129,8 @@ fun AccountScreen(
                         .height(100.dp)
                         .clip(CircleShape)
                         .clickable {
-                            navController.navigate(Screens.ACCOUNT_SCREEN)
-                        }
-                    ,
+
+                        },
                     contentDescription = "Profile Photo URL"
                 )
                 Spacer(modifier = Modifier.height(7.dp))
@@ -140,11 +163,12 @@ fun AccountScreen(
                     onClick = {
                         val signInClient = getGoogleSignInClient(context = context)
                         signInClient.signOut()
-                        viewModel.clearChats()
-                        navController.navigate(Screens.SIGN_IN_SCREEN)
+                        clearChats()
+                        navigateToSignInScreen()
+
                     }
 
-                ){
+                ) {
                     Text(text = "Sign Out")
                 }
             }

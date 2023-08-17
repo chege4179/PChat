@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.util
+package com.peterchege.pchat.core.api.responses
 
-import androidx.work.WorkInfo
+import com.peterchege.pchat.domain.models.Message
+import kotlinx.serialization.Serializable
 
-object WorkConstants {
-
-    const val NOTIFICATION_CHANNEL = "notification_channel"
-
-    const val syncMessagesWorker = "sync_messages"
-    const val syncChatsWorker = "sync_chats"
-}
-
-val List<WorkInfo>.anyRunning get() = any { it.state == WorkInfo.State.RUNNING }
+@Serializable
+data class GetMessagesBetweenTwoUsers(
+    val msg: String,
+    val success: Boolean,
+    val messagesCount: Int?,
+    val messages: List<Message>?
+)

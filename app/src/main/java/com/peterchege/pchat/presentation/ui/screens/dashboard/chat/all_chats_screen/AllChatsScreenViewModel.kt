@@ -17,6 +17,8 @@ package com.peterchege.pchat.presentation.ui.screens.dashboard.chat.all_chats_sc
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peterchege.pchat.core.work.sync_chats.SyncChatsWorkManager
+import com.peterchege.pchat.core.work.sync_messages.SyncMessagesWorkManager
 import com.peterchege.pchat.data.OfflineFirstChatRepository
 import com.peterchege.pchat.data.OfflineFirstMessageRepository
 import com.peterchege.pchat.domain.mappers.toExternalModel
@@ -27,6 +29,7 @@ import com.peterchege.pchat.presentation.models.ChatCardInfo
 import com.peterchege.pchat.presentation.ui.screens.add_chat_screen.AddChatUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -57,8 +61,37 @@ class AllChatsScreenViewModel @Inject constructor(
     private val offlineFirstChatRepository: OfflineFirstChatRepository,
     private val offlineFirstMessageRepository: OfflineFirstMessageRepository,
     private val authRepository: AuthRepository,
+    private val syncChatsWorkManager: SyncChatsWorkManager,
+    private val syncMessagesWorkManager: SyncMessagesWorkManager
 
-    ) : ViewModel() {
+) : ViewModel() {
+
+    val isMessagesSyncing = syncMessagesWorkManager.isSyncing
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = false
+        )
+    val isChatsSyncing = syncChatsWorkManager.isSyncing
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = false
+        )
+
+    init {
+        startRefreshingChats()
+    }
+
+    fun startRefreshingChats(){
+        viewModelScope.launch {
+            val syncChatsResults = async { syncChatsWorkManager.startSyncChats() }
+            val syncMessagesWorker = async { syncMessagesWorkManager.startSyncMessages() }
+            syncChatsResults.await()
+            syncMessagesWorker.await()
+
+        }
+    }
 
     val uiState = combine(
         offlineFirstChatRepository.getAllChats(),

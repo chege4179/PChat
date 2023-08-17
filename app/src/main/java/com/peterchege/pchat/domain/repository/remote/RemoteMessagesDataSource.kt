@@ -16,10 +16,14 @@
 package com.peterchege.pchat.domain.repository.remote
 
 import com.peterchege.pchat.core.api.NetworkResult
+import com.peterchege.pchat.core.api.responses.GetMessagesBetweenTwoUsers
 import com.peterchege.pchat.core.api.responses.GetMessagesResponse
 
 interface RemoteMessagesDataSource {
 
-    suspend fun getAllMessages(senderId: String, receiverId: String): NetworkResult<GetMessagesResponse>
+    suspend fun getAllMessagesBetweenTwoUsers(senderId: String, receiverId: String): NetworkResult<GetMessagesBetweenTwoUsers>
+
+
+    suspend fun getAllMessages(senderId: String):NetworkResult<GetMessagesResponse>
 
 }

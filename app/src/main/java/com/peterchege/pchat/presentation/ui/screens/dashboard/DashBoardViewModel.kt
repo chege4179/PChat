@@ -19,19 +19,29 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peterchege.pchat.core.work.sync_chats.SyncChatsWorkManager
+import com.peterchege.pchat.core.work.sync_messages.SyncMessagesWorkManager
+import com.peterchege.pchat.data.OfflineFirstChatRepository
+import com.peterchege.pchat.data.OfflineFirstMessageRepository
 import com.peterchege.pchat.domain.repository.AuthRepository
 import com.peterchege.pchat.domain.repository.MessageRepository
 import com.peterchege.pchat.domain.repository.ChatRepository
 import com.peterchege.pchat.util.SocketHandler.mSocket
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class DashBoardViewModel @Inject constructor(
+    private val offlineFirstChatRepository: OfflineFirstChatRepository,
+    private val offlineFirstMessageRepository: OfflineFirstMessageRepository,
     private val authRepository: AuthRepository,
+    private val syncChatsWorkManager: SyncChatsWorkManager,
+    private val syncMessagesWorkManager: SyncMessagesWorkManager
 ) : ViewModel() {
     val authUser = authRepository.getAuthUser()
         .stateIn(
@@ -40,9 +50,33 @@ class DashBoardViewModel @Inject constructor(
             initialValue = null
         )
 
+    val isMessagesSyncing = syncMessagesWorkManager.isSyncing
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = false
+        )
+    val isChatsSyncing = syncChatsWorkManager.isSyncing
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = false
+        )
+
     init {
+        startRefreshingChats()
         mSocket.emit("connected", " has connected")
 
+    }
+
+    fun startRefreshingChats(){
+        viewModelScope.launch {
+            val syncChatsResults = async { syncChatsWorkManager.startSyncChats() }
+            val syncMessagesWorker = async { syncMessagesWorkManager.startSyncMessages() }
+            syncChatsResults.await()
+            syncMessagesWorker.await()
+
+        }
     }
 
 

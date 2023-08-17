@@ -26,4 +26,5 @@ data class GetUserByIdResponse (
     val msg:String,
     val success:Boolean,
     val user: NetworkUser?,
+    val chats:List<NetworkUser>?
     )

@@ -40,6 +40,12 @@ class PChatApp :Application(),Configuration.Provider{
         initTimber()
         setUpWorkerManagerNotificationChannel()
     }
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration.Builder()
+            .setMinimumLoggingLevel(android.util.Log.DEBUG)
+            .setWorkerFactory(workerFactory)
+            .build()
+    }
 
     private fun setUpWorkerManagerNotificationChannel(){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -51,15 +57,10 @@ class PChatApp :Application(),Configuration.Provider{
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
-        //WorkManager.initialize(this, Configuration.Builder().setWorkerFactory(workerFactory).build())
+        WorkManager.initialize(this, Configuration.Builder().setWorkerFactory(workerFactory).build())
     }
 
-    override fun getWorkManagerConfiguration(): Configuration {
-        return Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.DEBUG)
-            .setWorkerFactory(workerFactory)
-            .build()
-    }
+
 
 }
 

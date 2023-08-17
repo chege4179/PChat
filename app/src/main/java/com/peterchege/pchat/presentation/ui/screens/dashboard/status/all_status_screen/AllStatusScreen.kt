@@ -34,18 +34,19 @@ import com.peterchege.pchat.util.Screens
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AllStatusScreen(
-    navController: NavController
+
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screens.ADD_CHAT_SCREEN)
+
                 }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Add,"Add New Chat"
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add New Chat"
                 )
             }
         }

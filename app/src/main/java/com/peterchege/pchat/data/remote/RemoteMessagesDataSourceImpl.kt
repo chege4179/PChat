@@ -17,6 +17,7 @@ package com.peterchege.pchat.data.remote
 
 import com.peterchege.pchat.core.api.NetworkResult
 import com.peterchege.pchat.core.api.PChatApi
+import com.peterchege.pchat.core.api.responses.GetMessagesBetweenTwoUsers
 import com.peterchege.pchat.core.api.responses.GetMessagesResponse
 import com.peterchege.pchat.core.api.safeApiCall
 import com.peterchege.pchat.core.di.IoDispatcher
@@ -29,12 +30,18 @@ class RemoteMessagesDataSourceImpl @Inject constructor(
     private val api: PChatApi,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : RemoteMessagesDataSource {
-    override suspend fun getAllMessages(
+    override suspend fun getAllMessagesBetweenTwoUsers(
         senderId: String,
         receiverId: String
-    ): NetworkResult<GetMessagesResponse> {
+    ): NetworkResult<GetMessagesBetweenTwoUsers> {
         return withContext(ioDispatcher){
             safeApiCall { api.getChatMessages(senderId = senderId,receiverId = receiverId) }
+        }
+    }
+
+    override suspend fun getAllMessages(senderId: String): NetworkResult<GetMessagesResponse> {
+        return withContext(ioDispatcher){
+            safeApiCall { api.getAllMessages(senderId = senderId) }
         }
     }
 

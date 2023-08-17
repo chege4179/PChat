@@ -50,7 +50,6 @@ class AccountScreenViewModel @Inject constructor(
         )
 
     fun clearChats (){
-
         viewModelScope.launch {
             offlineFirstChatRepository.clearChats()
             offlineFirstMessageRepository.clearMessages()

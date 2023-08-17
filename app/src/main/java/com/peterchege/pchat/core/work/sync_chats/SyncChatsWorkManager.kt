@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.work.sync_messages
+package com.peterchege.pchat.core.work.sync_chats
 
 import android.content.Context
 import androidx.lifecycle.asFlow
@@ -24,6 +24,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.peterchege.pchat.core.work.sync_messages.SyncMessagesWorker
 import com.peterchege.pchat.util.WorkConstants
 import com.peterchege.pchat.util.anyRunning
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -31,27 +32,27 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import javax.inject.Inject
 
-
-interface SyncMessagesWorkManager {
+interface SyncChatsWorkManager {
     val isSyncing: Flow<Boolean>
 
-    suspend fun startSyncMessages()
+
+    fun startSyncChats()
 }
 
-class SyncMessagesWorkManagerImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : SyncMessagesWorkManager {
+
+class SyncChatsWorkManagerImpl @Inject constructor(
+    @ApplicationContext private val context: Context
+) :SyncChatsWorkManager{
 
     override val isSyncing: Flow<Boolean> =
-        WorkManager.getInstance(context)
-            .getWorkInfosForUniqueWorkLiveData(WorkConstants.syncMessagesWorker)
-            .map(MutableList<WorkInfo>::anyRunning)
-            .asFlow()
-            .conflate()
+        WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData(WorkConstants.syncChatsWorker)
+    .map(MutableList<WorkInfo>::anyRunning)
+    .asFlow()
+    .conflate()
 
 
-    override suspend fun startSyncMessages() {
-        val syncMessagesRequest = OneTimeWorkRequestBuilder<SyncMessagesWorker>()
+    override fun startSyncChats() {
+        val syncChatsRequest = OneTimeWorkRequestBuilder<SyncChatsWorker>()
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(
@@ -64,11 +65,11 @@ class SyncMessagesWorkManagerImpl @Inject constructor(
         workManager.beginUniqueWork(
             WorkConstants.syncMessagesWorker,
             ExistingWorkPolicy.KEEP,
-            syncMessagesRequest
+            syncChatsRequest
         )
             .enqueue()
     }
 
 
-}
 
+}

@@ -37,7 +37,6 @@ import com.peterchege.pchat.domain.models.User
 @ExperimentalCoilApi
 @Composable
 fun ProfileCard(
-    navController: NavController,
     onProfileNavigate:(String) ->Unit,
     user: NetworkUser,
 ){
