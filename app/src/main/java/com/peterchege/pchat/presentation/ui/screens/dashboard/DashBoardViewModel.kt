@@ -19,8 +19,9 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.peterchege.pchat.domain.repository.AuthRepository
+import com.peterchege.pchat.domain.repository.MessageRepository
 import com.peterchege.pchat.domain.repository.ChatRepository
-import com.peterchege.pchat.domain.repository.UserRepository
 import com.peterchege.pchat.util.SocketHandler.mSocket
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,28 +31,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DashBoardViewModel @Inject constructor(
-
-    private val offlineFirstChatRepository: ChatRepository,
-    private val offlineFirstUserRepository: UserRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-    val authUser = offlineFirstUserRepository.getAuthUser()
+    val authUser = authRepository.getAuthUser()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = null
         )
-    private val _isError = mutableStateOf(false)
-    val isError: State<Boolean> = _isError
-
-    private val _errorMsg = mutableStateOf("")
-    val errorMsg: State<String> = _errorMsg
-
-    private val _isLoading = mutableStateOf(false)
-    val isLoading: State<Boolean> = _isLoading
-
-    private val _msg = mutableStateOf("")
-    val msg: State<String> = _msg
-
 
     init {
         mSocket.emit("connected", " has connected")

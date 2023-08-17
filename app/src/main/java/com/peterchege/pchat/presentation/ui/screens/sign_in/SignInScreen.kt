@@ -112,7 +112,10 @@ fun SignInScreen(
     }
 
 
-    Scaffold(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        scaffoldState = scaffoldState,
+        modifier = Modifier.fillMaxSize()
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -124,7 +127,7 @@ fun SignInScreen(
                 loadingText = "Signing In...",
                 isLoading = false,
                 onClick = {
-                    val signInClient = getGoogleSignInClient(context=context)
+
 
                     authResultLauncher.launch(1)
 

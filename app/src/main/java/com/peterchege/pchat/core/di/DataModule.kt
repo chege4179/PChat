@@ -15,66 +15,68 @@
  */
 package com.peterchege.pchat.core.di
 
-import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStoreFile
-import com.google.firebase.auth.FirebaseAuth
 import com.peterchege.pchat.core.api.PChatApi
-import com.peterchege.pchat.core.datastore.repository.UserInfoRepository
 import com.peterchege.pchat.core.room.database.PChatDatabase
 import com.peterchege.pchat.data.local.LocalChatsDataSourceImpl
-import com.peterchege.pchat.data.local.LocalUsersDataSourceImpl
+import com.peterchege.pchat.data.local.LocalMessagesDataSourceImpl
 import com.peterchege.pchat.data.remote.RemoteChatsDataSourceImpl
-import com.peterchege.pchat.data.remote.RemoteUsersDataSourceImpl
+import com.peterchege.pchat.data.remote.RemoteMessagesDataSourceImpl
 import com.peterchege.pchat.domain.repository.local.LocalChatsDataSource
-import com.peterchege.pchat.domain.repository.local.LocalUserDataSource
+import com.peterchege.pchat.domain.repository.local.LocalMessagesDataSource
 import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
-import com.peterchege.pchat.domain.repository.remote.RemoteUserDataSource
-import com.peterchege.pchat.util.Constants
+import com.peterchege.pchat.domain.repository.remote.RemoteMessagesDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
 
+
+
     @Provides
     @Singleton
-    fun provideLocalUserDataSource(
+    fun provideLocalChatsDataSource(
         db:PChatDatabase,
-        userInfoRepository:UserInfoRepository,
-        auth:FirebaseAuth,
-    ): LocalUserDataSource {
-        return LocalUsersDataSourceImpl(
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): LocalChatsDataSource {
+        return LocalChatsDataSourceImpl(
             db = db,
-            userInfoRepository = userInfoRepository,
-            auth = auth,
+            ioDispatcher = ioDispatcher
+
         )
 
     }
 
     @Provides
     @Singleton
-    fun provideLocalChatsDataSource(db:PChatDatabase, ): LocalChatsDataSource {
-        return LocalChatsDataSourceImpl(db = db)
+    fun provideLocalMessagesDataSource(
+        db:PChatDatabase ,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): LocalMessagesDataSource {
+        return LocalMessagesDataSourceImpl(db = db,ioDispatcher = ioDispatcher)
 
     }
 
     @Provides
     @Singleton
-    fun provideRemoteChatsDataSource(api:PChatApi): RemoteChatsDataSource {
-        return RemoteChatsDataSourceImpl(api = api)
+    fun provideRemoteMessagesDataSource(
+        api:PChatApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): RemoteMessagesDataSource {
+        return RemoteMessagesDataSourceImpl(api = api,ioDispatcher = ioDispatcher)
     }
 
     @Provides
     @Singleton
-    fun provideRemoteUserDataSource(api:PChatApi): RemoteUserDataSource {
-        return RemoteUsersDataSourceImpl(api = api)
+    fun provideRemoteChatsDataSource(
+        api:PChatApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
+    ): RemoteChatsDataSource {
+        return RemoteChatsDataSourceImpl(api = api,ioDispatcher = ioDispatcher)
     }
 }

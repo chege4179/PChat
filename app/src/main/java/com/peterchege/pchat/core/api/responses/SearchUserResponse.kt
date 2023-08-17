@@ -17,9 +17,12 @@ package com.peterchege.pchat.core.api.responses
 
 import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.domain.models.User
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class SearchUserResponse(
     val msg:String,
-    val success:String,
+    val success:Boolean,
     val users:List<NetworkUser>
 )

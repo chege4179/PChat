@@ -15,9 +15,14 @@
  */
 package com.peterchege.pchat.core.api.requests
 
+import kotlinx.serialization.Serializable
+
+
+@Serializable
 data class AddUser(
     val displayName:String,
     val email:String,
     val imageUrl:String,
-    val userId:String,
+    val googleId:String,
+    val deviceToken:String,
 )

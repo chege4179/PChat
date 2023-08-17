@@ -20,7 +20,9 @@ import com.peterchege.pchat.domain.mappers.toExternalModel
 import com.peterchege.pchat.domain.models.Message
 import com.peterchege.pchat.domain.models.NetworkUser
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ChatCardInfo (
     val authUser:NetworkUser,
     val chatUserInfo: NetworkUser,
@@ -28,6 +30,8 @@ data class ChatCardInfo (
 
 )
 
+
+@Serializable
 data class ChatWithSender(
     val authUser:NetworkUser?,
     val chatUserInfo: NetworkUser,

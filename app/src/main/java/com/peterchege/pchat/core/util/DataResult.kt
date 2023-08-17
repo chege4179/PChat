@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.use_case
+package com.peterchege.pchat.core.util
 
-import com.peterchege.pchat.data.OfflineFirstUserRepository
-import com.peterchege.pchat.domain.models.NetworkUser
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapMerge
-import javax.inject.Inject
+sealed class DataResult<T>(val data:T? = null,val message:String? = null) {
+    class Success<T>(data: T): DataResult<T>(data = data)
+    class Error<T>(message:String): DataResult<T>(message = message)
 
-class GetAuthUserUseCase @Inject constructor(
-    val offlineFirstUserRepository: OfflineFirstUserRepository,
 
-) {
-    operator fun invoke(): Flow<NetworkUser?> {
-        return offlineFirstUserRepository.getAuthUser()
-    }
 }

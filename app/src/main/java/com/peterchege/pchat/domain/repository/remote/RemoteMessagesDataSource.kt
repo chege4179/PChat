@@ -13,5 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.api.responses
+package com.peterchege.pchat.domain.repository.remote
 
+import com.peterchege.pchat.core.api.NetworkResult
+import com.peterchege.pchat.core.api.responses.GetMessagesResponse
+
+interface RemoteMessagesDataSource {
+
+    suspend fun getAllMessages(senderId: String, receiverId: String): NetworkResult<GetMessagesResponse>
+
+}

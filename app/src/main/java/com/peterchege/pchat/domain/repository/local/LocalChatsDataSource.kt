@@ -16,23 +16,22 @@
 package com.peterchege.pchat.domain.repository.local
 
 import com.peterchege.pchat.core.room.entities.ChatEntity
-import com.peterchege.pchat.core.room.entities.MessageEntity
-import com.peterchege.pchat.domain.models.Message
-import com.peterchege.pchat.domain.models.NetworkUser
 import kotlinx.coroutines.flow.Flow
 
 interface LocalChatsDataSource {
 
-    suspend fun getChats(): List<ChatEntity>
+    fun getLocalChats():Flow<List<ChatEntity>>
 
-    fun getSingleChatMessages(senderId: String, receiverId: String): Flow<List<MessageEntity>>
+    fun getChatUserById(userId:String):Flow<ChatEntity?>
 
-    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
+    suspend fun insertChats(chats:List<ChatEntity>)
 
-    suspend fun insertMessages(messages: List<Message>)
+    suspend fun deleteChatById(userId:String)
+    suspend fun clearChat()
 
 
-    suspend fun clearChats()
 
-    suspend fun insertChats(chats: List<NetworkUser>)
+
+
+
 }

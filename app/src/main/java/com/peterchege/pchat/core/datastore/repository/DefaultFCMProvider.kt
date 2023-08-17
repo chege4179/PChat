@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.use_case
+package com.peterchege.pchat.core.datastore.repository
 
-import com.peterchege.pchat.domain.repository.ChatRepository
+import com.peterchege.pchat.core.datastore.preferences.UserPreferences
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class SyncChatsAndMessagesUseCases @Inject constructor(
-    private val offlineFirstChatRepository: ChatRepository
+class DefaultFCMProvider @Inject constructor(
+    private val userPreferences: UserPreferences,
 
 ) {
-    suspend operator fun invoke() {
-        offlineFirstChatRepository.getAllMessagesAcrossAllChats()
-
+    fun getFCMToken(): Flow<String?> {
+        return userPreferences.getFCMToken()
     }
+
+    suspend fun setFCMToken(token:String){
+        return userPreferences.setFCMToken(token = token)
+    }
+
 }

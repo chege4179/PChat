@@ -21,7 +21,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.peterchege.pchat.core.datastore.preferences.UserPreferences
-import com.peterchege.pchat.core.datastore.repository.UserInfoRepository
+import com.peterchege.pchat.core.datastore.repository.DefaultAuthDataProvider
+import com.peterchege.pchat.core.datastore.repository.DefaultFCMProvider
 import com.peterchege.pchat.util.Constants
 import dagger.Module
 import dagger.Provides
@@ -49,8 +50,15 @@ object DatastoreModule {
     }
     @Provides
     @Singleton
-    fun provideUserDataStore(@ApplicationContext context: Context): UserInfoRepository {
-        return UserInfoRepository(context = context)
+    fun provideUserDataStore(@ApplicationContext context: Context): DefaultAuthDataProvider {
+        return DefaultAuthDataProvider(context = context)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideUserSettings(userPreferences: UserPreferences):DefaultFCMProvider{
+        return DefaultFCMProvider(userPreferences = userPreferences)
     }
 
 }

@@ -60,7 +60,7 @@ fun AppNavigation(
         composable(Screens.ADD_CHAT_SCREEN) {
             AddChatScreen(navController = navController)
         }
-        composable(Screens.CHAT_SCREEN + "/{id}") {
+        composable(Screens.CHAT_SCREEN + "/{receiverId}/{senderId}") {
             ChatScreen(navController = navController)
         }
         composable(Screens.ACCOUNT_SCREEN) {

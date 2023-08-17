@@ -16,10 +16,19 @@
 package com.peterchege.pchat.core.api.responses
 
 import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.serialization.Serializable
 
+
+
+
+
+@Serializable
 data class GetMessagesResponse (
     val msg:String,
     val success:Boolean,
-    val messages:List<Message>,
+    val chats:List<NetworkUser>?,
+    val sentMessages:List<Message>,
+    val receivedMessages:List<Message>,
 
     )

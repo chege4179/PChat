@@ -27,7 +27,7 @@ import javax.inject.Inject
 val Context.userDataStore by dataStore("user.json", NetworkUserInfoSerializer)
 
 
-class UserInfoRepository @Inject constructor(
+class DefaultAuthDataProvider @Inject constructor(
     @ApplicationContext private val context: Context
 ){
 

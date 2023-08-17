@@ -17,7 +17,7 @@ package com.peterchege.pchat.util
 
 object Constants {
     const val DATABASE_NAME="pchat_db"
-    const val LOCAL_URL = "http://192.168.1.8:9004"
+    const val LOCAL_URL = "http://10.0.2.2:9004"
     const val REMOTE_URL = "https://pchatapi-production.up.railway.app"
     const val BASE_URL = LOCAL_URL
     const val CHANNEL_ID = "CHANNEL_ID"

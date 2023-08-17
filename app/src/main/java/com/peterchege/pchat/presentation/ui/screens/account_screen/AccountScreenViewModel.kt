@@ -15,18 +15,12 @@
  */
 package com.peterchege.pchat.presentation.ui.screens.account_screen
 
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.peterchege.pchat.data.OfflineFirstChatRepository
+import com.peterchege.pchat.domain.repository.AuthRepository
+import com.peterchege.pchat.domain.repository.MessageRepository
 import com.peterchege.pchat.domain.repository.ChatRepository
-import com.peterchege.pchat.domain.repository.UserRepository
-import com.peterchege.pchat.util.Constants
-import com.peterchege.pchat.util.Screens
 import com.peterchege.pchat.util.UiEvent
-import com.peterchege.pchat.util.getGoogleSignInClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,15 +33,16 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountScreenViewModel @Inject constructor(
 
-    private val offlineFirstUserRepository: UserRepository,
-    private val offlineFirstChatRepository: ChatRepository
+    private val offlineFirstChatRepository: ChatRepository,
+    private val offlineFirstMessageRepository: MessageRepository,
+    private val authRepository: AuthRepository,
 
 ) :ViewModel(){
 
     val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    val authUser = offlineFirstUserRepository.getAuthUser()
+    val authUser = authRepository.getAuthUser()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
@@ -58,7 +53,8 @@ class AccountScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             offlineFirstChatRepository.clearChats()
-            offlineFirstUserRepository.signOutUser()
+            offlineFirstMessageRepository.clearMessages()
+            authRepository.signOutUser()
         }
     }
 

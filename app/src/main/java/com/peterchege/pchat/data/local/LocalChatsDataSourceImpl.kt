@@ -15,45 +15,44 @@
  */
 package com.peterchege.pchat.data.local
 
+import com.peterchege.pchat.core.di.IoDispatcher
 import com.peterchege.pchat.core.room.database.PChatDatabase
 import com.peterchege.pchat.core.room.entities.ChatEntity
-import com.peterchege.pchat.core.room.entities.MessageEntity
-import com.peterchege.pchat.domain.mappers.toEntity
-import com.peterchege.pchat.domain.models.Message
-import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.domain.repository.local.LocalChatsDataSource
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class LocalChatsDataSourceImpl @Inject constructor(
-    private val db:PChatDatabase
-):LocalChatsDataSource{
-
-
-    override suspend fun getChats(): List<ChatEntity> {
-        return db.chatDao.getLocalChats()
+    private val db:PChatDatabase,
+    @IoDispatcher private val ioDispatcher:CoroutineDispatcher
+):LocalChatsDataSource {
+    override fun getLocalChats(): Flow<List<ChatEntity>> {
+        return db.chatDao.getLocalChats().flowOn(ioDispatcher)
     }
 
-    override fun getSingleChatMessages(
-        senderId: String,
-        receiverId: String
-    ): Flow<List<MessageEntity>> {
-        return db.chatDao.getMessagesFromSenderAndReceiver(senderId = senderId,receiverId = receiverId)
+    override fun getChatUserById(userId: String): Flow<ChatEntity?> {
+        return db.chatDao.getChatUserById(userId = userId).flowOn(ioDispatcher)
     }
 
-    override fun getLastMessage(receiverId: String): Flow<MessageEntity?> {
-        return db.chatDao.getLastMessage(receiverId = receiverId)
+    override suspend fun insertChats(chats: List<ChatEntity>) {
+        withContext(ioDispatcher){
+            db.chatDao.insertChats(chats = chats)
+        }
     }
 
-    override suspend fun insertMessages(messages: List<Message>) {
-        return db.chatDao.insertMessages(messages = messages.map { it.toEntity() })
+    override suspend fun deleteChatById(userId: String) {
+        withContext(ioDispatcher){
+            db.chatDao.deleteChatById(userId = userId)
+        }
     }
 
-    override suspend fun clearChats() {
-        return db.chatDao.clearChats()
+    override suspend fun clearChat() {
+        withContext(ioDispatcher){
+            db.chatDao.clearChats()
+        }
     }
 
-    override suspend fun insertChats(chats: List<NetworkUser>) {
-        return db.chatDao.insertChats(chats = chats.map { it.toEntity() })
-    }
 }

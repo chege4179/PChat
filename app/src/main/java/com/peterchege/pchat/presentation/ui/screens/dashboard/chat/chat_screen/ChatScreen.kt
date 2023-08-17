@@ -49,22 +49,21 @@ fun ChatScreen(
 ){
     val scrollState = rememberLazyListState()
     val scaffoldState = rememberScaffoldState()
-    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
-    val messages = viewModel.messages.value
-        .collectAsStateWithLifecycle(initialValue = emptyList())
-        .value
-        .map { it.toExternalModel() }
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = messages.size){
-        if(messages.size > 1){
-            scrollState.animateScrollToItem(index = messages.size - 1)
+    LaunchedEffect(key1 = true){
+        if (uiState is ChatsScreenUiState.Success){
+            if(uiState.chats.size > 1){
+                scrollState.animateScrollToItem(index = uiState.chats.size - 1)
+            }
         }
 
+
     }
-    LaunchedEffect(key1 = viewModel.isError.value){
-        if(viewModel.isError.value){
+    LaunchedEffect(key1 = true){
+        if(uiState is ChatsScreenUiState.Error){
             scaffoldState.snackbarHostState.showSnackbar(
-                message = viewModel.errorMsg.value
+                message = uiState.message
             )
         }
     }
@@ -74,14 +73,14 @@ fun ChatScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    viewModel.activeChatUser.value?.let {
+                    if(uiState is ChatsScreenUiState.Success){
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             SubcomposeAsyncImage(
-                                model = it.imageUrl,
+                                model = uiState.receiver.imageUrl,
                                 loading = {
                                     Box(modifier = Modifier.fillMaxSize()) {
                                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -98,7 +97,7 @@ fun ChatScreen(
                             Spacer(modifier = Modifier.width(20.dp))
                             Text(
                                 modifier = Modifier.fillMaxWidth(0.75f),
-                                text = it.fullName
+                                text = uiState.receiver.fullName
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -126,59 +125,64 @@ fun ChatScreen(
 
                                     )
                                 }
-
                             }
                         }
+                    }else{
+                        Text(
+                            modifier = Modifier.fillMaxWidth(0.75f),
+                            text = "P Chat User"
+                        )
                     }
-
                 }
                 ,
                 backgroundColor = MaterialTheme.colors.primary)
         }
 
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(5.dp)
-        ) {
-            if(viewModel.isError.value){
+        when(uiState){
+            is ChatsScreenUiState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+            }
+            is ChatsScreenUiState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Text(
-                        text = viewModel.errorMsg.value,
+                        text = uiState.message,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-            }else{
-                if (viewModel.isLoading.value){
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
-                }else{
+            }
+            is ChatsScreenUiState.Success -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(5.dp)
+                ) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(0.9f),
-                        state = scrollState,
-
-                        ){
-                        items(items = messages){
+                        state = scrollState
+                    ){
+                        items(items = uiState.chats){
                             MessageCard(
                                 messageItem = it,
-                                currentUserId = authUser?.userId ?: "",
+                                currentUserId = uiState.authUser.userId ,
                             )
                         }
                     }
                     MessageInput()
+
+
                 }
             }
-
-
         }
+
 
 
 

@@ -15,35 +15,24 @@
  */
 package com.peterchege.pchat.domain.repository
 
-import com.peterchege.pchat.core.api.responses.GetMessagesResponse
-import com.peterchege.pchat.core.room.entities.ChatEntity
-import com.peterchege.pchat.core.room.entities.MessageEntity
-import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.core.api.NetworkResult
+import com.peterchege.pchat.core.api.requests.AddUser
+import com.peterchege.pchat.core.api.responses.AddUserResponse
+import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
+import com.peterchege.pchat.core.api.responses.SearchUserResponse
+import com.peterchege.pchat.core.util.DataResult
 import com.peterchege.pchat.domain.models.NetworkUser
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
 
+    suspend fun searchUser(query:String): NetworkResult<SearchUserResponse>
 
-    fun getChats():Flow<List<ChatEntity>>
-
-    suspend fun insertChats(chats: List<NetworkUser>)
-
-    suspend fun insertMessages(messages: List<Message>)
-
-    suspend fun getAllMessagesAcrossAllChats()
-
-    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
-
-    fun getChatMessagesBetween2Users(
-        senderId: String,
-        receiverId: String
-    ): Flow<List<MessageEntity>>
+    suspend fun getUserById(id:String): DataResult<NetworkUser>
 
     suspend fun clearChats()
 
-
-
+    fun getAllChats():Flow<List<NetworkUser>>
 
 
 

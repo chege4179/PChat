@@ -13,25 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.core.room.database
+package com.peterchege.pchat.domain.repository
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import com.peterchege.pchat.core.room.dao.ChatDao
-import com.peterchege.pchat.core.room.dao.MessageDao
 import com.peterchege.pchat.core.room.entities.ChatEntity
 import com.peterchege.pchat.core.room.entities.MessageEntity
+import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.coroutines.flow.Flow
 
-@Database(
-    entities = [
-        ChatEntity::class,
-        MessageEntity::class
-    ],
-    version = 1,
-    exportSchema = true
-)
-abstract class PChatDatabase : RoomDatabase() {
-    abstract val chatDao: ChatDao
+interface MessageRepository {
 
-    abstract val messageDao:MessageDao
+    suspend fun insertMessages(messages: List<Message>)
+
+    suspend fun insertMessage(message: Message)
+
+    fun getAllMessagesAcrossAllChats():Flow<List<Message>>
+
+    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
+
+    fun getChatMessagesBetween2Users(
+        senderId: String,
+        receiverId: String
+    ): Flow<List<MessageEntity>>
+
+    suspend fun clearMessages()
+
+
+
+
+
+
 }

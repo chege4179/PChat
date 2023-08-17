@@ -15,30 +15,21 @@
  */
 package com.peterchege.pchat.domain.repository
 
+import com.peterchege.pchat.core.api.NetworkResult
 import com.peterchege.pchat.core.api.requests.AddUser
 import com.peterchege.pchat.core.api.responses.AddUserResponse
-import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
-import com.peterchege.pchat.core.api.responses.SearchUserResponse
 import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.models.User
 import kotlinx.coroutines.flow.Flow
 
-interface UserRepository {
+interface AuthRepository {
 
-    suspend fun addUser(addUser: AddUser): AddUserResponse
-
-    suspend fun searchUser(query:String): SearchUserResponse
-
-    suspend fun getUserById(id:String): GetUserByIdResponse
+    suspend fun addUser(addUser: AddUser): NetworkResult<AddUserResponse>
 
     fun getAuthUser(): Flow<NetworkUser?>
 
-    suspend fun setAuthUser(user:NetworkUser)
+    suspend fun setAuthUser(user: NetworkUser)
 
     suspend fun signOutUser()
-
-    suspend fun getChatUserById(id:String):NetworkUser?
-
 
 
 }

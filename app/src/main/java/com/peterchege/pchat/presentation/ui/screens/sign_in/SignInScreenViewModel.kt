@@ -19,15 +19,22 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
+import com.peterchege.pchat.core.api.NetworkResult
 import com.peterchege.pchat.core.api.requests.AddUser
-import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.core.datastore.repository.DefaultAuthDataProvider
+import com.peterchege.pchat.core.datastore.repository.DefaultFCMProvider
+import com.peterchege.pchat.data.OfflineFirstChatRepository
 import com.peterchege.pchat.domain.models.User
+import com.peterchege.pchat.domain.repository.AuthRepository
 import com.peterchege.pchat.util.Screens
 import com.peterchege.pchat.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -35,8 +42,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInScreenViewModel @Inject constructor(
-
-    private val offlineFirstUserRepository: OfflineFirstUserRepository,
+    private val offlineFirstChatRepository: OfflineFirstChatRepository,
+    private val defaultFCMProvider: DefaultFCMProvider,
+    private val authRepository: AuthRepository
 
     ) : ViewModel() {
     private var _user = mutableStateOf<User?>(null)
@@ -52,33 +60,34 @@ class SignInScreenViewModel @Inject constructor(
         addUserToDatabase(user = user)
     }
 
+
     private fun addUserToDatabase(user: User) {
         viewModelScope.launch {
-            try {
-                val addUser = AddUser(
-                    displayName = user.displayName ?: "",
-                    email = user.email ?: "",
-                    imageUrl = user.imageUrl,
-                    userId = user.userId
-                )
-                val response = offlineFirstUserRepository.addUser(addUser = addUser)
-                if (response.user != null) {
-                    offlineFirstUserRepository.setAuthUser(user = response.user)
-                    _eventFlow.emit(UiEvent.ShowSnackbar(message = "Login Successful"))
-                    _eventFlow.emit(UiEvent.Navigate(Screens.DASHBOARD_SCREEN))
+            val token = FirebaseMessaging.getInstance().token.await()
+            val addUser = AddUser(
+                displayName = user.displayName ?: "",
+                email = user.email ?: "",
+                imageUrl = user.imageUrl,
+                googleId = user.userId,
+                deviceToken = token
+            )
+            val response = authRepository.addUser(addUser = addUser)
+            when(response){
+                is NetworkResult.Success -> {
+                    if (response.data.user != null) {
+                        defaultFCMProvider.setFCMToken(response.data.deviceId)
+                        authRepository.setAuthUser(user = response.data.user)
+                        _eventFlow.emit(UiEvent.ShowSnackbar(message = "Login Successful"))
+                        _eventFlow.emit(UiEvent.Navigate(Screens.DASHBOARD_SCREEN))
+                    }
                 }
-
-            } catch (e: HttpException) {
-                _eventFlow.emit(UiEvent.ShowSnackbar(message = "Please check your internet connection"))
-
-            } catch (e: IOException) {
-                _eventFlow.emit(UiEvent.ShowSnackbar(message = "An unexpected error occurred"))
-
+                is NetworkResult.Error -> {
+                    _eventFlow.emit(UiEvent.ShowSnackbar(message = "Please check your internet connection"))
+                }
+                is NetworkResult.Exception -> {
+                    _eventFlow.emit(UiEvent.ShowSnackbar(message = "An unexpected error occurred"))
+                }
             }
         }
-
-
     }
-
-
 }

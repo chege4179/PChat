@@ -16,19 +16,51 @@
 package com.peterchege.pchat.core.di
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import com.peterchege.pchat.BuildConfig
 import com.peterchege.pchat.core.crashlytics.CrashlyticsTree
+import com.peterchege.pchat.util.WorkConstants
 import dagger.hilt.android.HiltAndroidApp
 import org.jetbrains.annotations.NotNull
 import timber.log.Timber
+import javax.inject.Inject
 
 
 @HiltAndroidApp
-class PChatApp :Application(){
+class PChatApp :Application(),Configuration.Provider{
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
     override fun onCreate() {
         super.onCreate()
         initTimber()
+        setUpWorkerManagerNotificationChannel()
     }
+
+    private fun setUpWorkerManagerNotificationChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            val channel = NotificationChannel(
+                WorkConstants.NOTIFICATION_CHANNEL,
+                WorkConstants.syncMessagesWorker,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+        //WorkManager.initialize(this, Configuration.Builder().setWorkerFactory(workerFactory).build())
+    }
+
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration.Builder()
+            .setMinimumLoggingLevel(android.util.Log.DEBUG)
+            .setWorkerFactory(workerFactory)
+            .build()
+    }
+
 }
 
 

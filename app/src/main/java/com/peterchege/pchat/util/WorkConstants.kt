@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.use_case
+package com.peterchege.pchat.util
 
-import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.repository.ChatRepository
-import com.peterchege.pchat.domain.repository.UserRepository
-import javax.inject.Inject
+object WorkConstants {
 
-class GetMessageReceiverUseCase @Inject constructor(
-    private val offlineFirstUserRepository: UserRepository,
-) {
-    suspend operator fun invoke(userId:String):NetworkUser? {
-        return offlineFirstUserRepository.getChatUserById(id = userId)
+    const val NOTIFICATION_CHANNEL = "notification_channel"
 
-    }
+    const val syncMessagesWorker = "sync_messages"
 }

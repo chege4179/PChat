@@ -31,49 +31,20 @@ import kotlinx.coroutines.flow.combine
 interface ChatDao {
 
     @Query("SELECT * FROM chats")
-    suspend fun getLocalChats(): List<ChatEntity>
+    fun getLocalChats():Flow<List<ChatEntity>>
 
     @Query("SELECT * FROM chats WHERE userId = :userId")
-    suspend fun getChatUserById(userId: String):ChatEntity?
+    fun getChatUserById(userId: String):Flow<ChatEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertChats(chats:List<ChatEntity> )
+    suspend fun insertChats(chats:List<ChatEntity>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessages(messages: List<MessageEntity>)
-
-    @Query("SELECT * FROM chats WHERE userId = :userId")
-    suspend fun getChatById(userId: String): ChatEntity?
-
-
-
-    fun getMessagesBetweenTwoUsers(
-        senderId: String,
-        receiverId: String
-    ): Flow<List<MessageEntity>> {
-        val messages1 =
-            getMessagesFromSenderAndReceiver(senderId = senderId, receiverId = receiverId)
-        val messages2 =
-            getMessagesFromSenderAndReceiver(senderId = receiverId, receiverId = senderId)
-        return messages2.combine(messages1) { i, s ->
-            return@combine i + s
-        }
-    }
-
-    @Query("SELECT * FROM messages WHERE senderId =:senderId AND receiverId =:receiverId")
-    fun getMessagesFromSenderAndReceiver(
-        senderId: String,
-        receiverId: String
-    ): Flow<List<MessageEntity>>
-
-    @Query("SELECT * FROM messages WHERE senderId =:receiverId AND receiverId =:receiverId ORDER BY sentAt DESC LIMIT 1")
-    fun getLastMessage(receiverId: String): Flow<MessageEntity?>
-
+    @Query("DELETE FROM chats WHERE userId =:userId")
+    suspend fun deleteChatById(userId:String)
     @Query("DELETE FROM chats")
     suspend fun clearChats()
 
-    @Query("DELETE FROM messages")
-    suspend fun clearMessages()
+
 
 
 }

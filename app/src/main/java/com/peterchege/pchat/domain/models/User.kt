@@ -17,7 +17,7 @@ package com.peterchege.pchat.domain.models
 
 import kotlinx.serialization.Serializable
 
-
+@Serializable
 data class User(
     val displayName: String,
     val email: String,
@@ -33,7 +33,7 @@ data class NetworkUser(
     val email: String,
     val imageUrl: String,
 )
-
+@Serializable
 data class UserWithMessages(
     val userId: String,
     val googleId:String,

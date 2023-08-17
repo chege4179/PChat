@@ -15,10 +15,18 @@
  */
 package com.peterchege.pchat.domain.repository.remote
 
-import com.peterchege.pchat.core.api.responses.GetMessagesResponse
+import com.peterchege.pchat.core.api.NetworkResult
+import com.peterchege.pchat.core.api.requests.AddUser
+import com.peterchege.pchat.core.api.responses.AddUserResponse
+import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
+import com.peterchege.pchat.core.api.responses.SearchUserResponse
 
 interface RemoteChatsDataSource {
 
-    suspend fun getChatMessages(senderId: String, receiverId: String): GetMessagesResponse
+    suspend fun searchUser(query:String):NetworkResult<SearchUserResponse>
+
+    suspend fun getUserById(id:String): NetworkResult<GetUserByIdResponse>
+
+
 
 }

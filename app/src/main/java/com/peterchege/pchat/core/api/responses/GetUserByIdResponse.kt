@@ -18,10 +18,12 @@ package com.peterchege.pchat.core.api.responses
 import com.peterchege.pchat.domain.models.NetworkUser
 import com.peterchege.pchat.domain.models.User
 import com.peterchege.pchat.domain.models.UserWithMessages
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class GetUserByIdResponse (
     val msg:String,
     val success:Boolean,
-    val user: UserWithMessages,
-    val chats: List<NetworkUser>
+    val user: NetworkUser?,
     )

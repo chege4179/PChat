@@ -19,60 +19,77 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.peterchege.pchat.data.OfflineFirstUserRepository
-import com.peterchege.pchat.domain.uiState.AddChat
-import com.peterchege.pchat.domain.uiState.AddChatUiState
+import com.peterchege.pchat.core.api.NetworkResult
+import com.peterchege.pchat.core.util.DataResult
+import com.peterchege.pchat.data.OfflineFirstChatRepository
+import com.peterchege.pchat.domain.models.NetworkUser
+import com.peterchege.pchat.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
 
+sealed interface AddChatUiState {
+    object Idle :AddChatUiState
 
+    object Loading:AddChatUiState
+
+    data class ResultsFound(val users:List<NetworkUser>):AddChatUiState
+
+    data class Error(val message:String) :AddChatUiState
+}
 @HiltViewModel
 class AddChatScreenViewModel @Inject constructor(
-    private val offlineFirstUserRepository: OfflineFirstUserRepository,
+    private val offlineFirstChatRepository: OfflineFirstChatRepository,
+    private val authRepository: AuthRepository
+    ):ViewModel() {
+    val authUser = authRepository.getAuthUser()
+        .stateIn(
+            scope = viewModelScope,
+            initialValue = null,
+            started = SharingStarted.WhileSubscribed(5000L)
+        )
 
-):ViewModel() {
-
-    val _uiState = MutableStateFlow<AddChatUiState>(
-        AddChatUiState.Idle(message = "Search Users you'd like to chat with"))
+    val _uiState = MutableStateFlow<AddChatUiState>(AddChatUiState.Idle)
     val uiState = _uiState.asStateFlow()
 
     private var _searchTerm = mutableStateOf("")
     var searchTerm: State<String> = _searchTerm
 
-
     private var searchJob : Job? = null
 
     fun onChangeSearchTerm(searchTerm: String){
-        _uiState.value = AddChatUiState.Loading(message = "Loading....")
+        _uiState.value = AddChatUiState.Loading
 
         _searchTerm.value = searchTerm
         if (searchTerm.length > 3){
             searchJob?.cancel()
             searchJob = viewModelScope.launch {
-                try {
-                    val response = offlineFirstUserRepository.searchUser(query = searchTerm)
-                    _uiState.value = AddChatUiState.Success(data = AddChat(searchUsers = response.users))
-
-                }catch (e: HttpException){
-                    val msg = e.localizedMessage?: "A server exception has occurred"
-                    _uiState.value = AddChatUiState.Error(errorMessage = msg)
-
-                }catch (e:IOException){
-                    val msg = e.localizedMessage?: "An unexpected error occurred"
-                    _uiState.value = AddChatUiState.Error(errorMessage = msg)
+                val response = offlineFirstChatRepository.searchUser(query = searchTerm)
+                when(response){
+                    is NetworkResult.Success -> {
+                        _uiState.value = AddChatUiState.ResultsFound(users = response.data.users)
+                    }
+                    is NetworkResult.Error -> {
+                        _uiState.value = AddChatUiState.Error(message = "An error occurred")
+                    }
+                    is NetworkResult.Exception -> {
+                        _uiState.value = AddChatUiState.Error(message = "An exception occurred")
+                    }
                 }
+
             }
         }else if (searchTerm.length < 2){
             viewModelScope.launch {
                 delay(500L)
-                _uiState.value = AddChatUiState.Error(errorMessage = "Please input more than 2 characters")
+                _uiState.value = AddChatUiState.Error(message = "Please input more than 2 characters")
             }
         }
     }

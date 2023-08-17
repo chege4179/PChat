@@ -16,10 +16,13 @@
 package com.peterchege.pchat.core.api.responses
 
 import com.peterchege.pchat.domain.models.NetworkUser
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class AddUserResponse (
     val msg:String,
     val success:Boolean,
     val isExisting:Boolean,
+    val deviceId:String,
     val user:NetworkUser?
-        )
+    )

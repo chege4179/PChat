@@ -17,33 +17,26 @@ package com.peterchege.pchat.data.remote
 
 import com.peterchege.pchat.core.api.NetworkResult
 import com.peterchege.pchat.core.api.PChatApi
-import com.peterchege.pchat.core.api.requests.AddUser
-import com.peterchege.pchat.core.api.responses.AddUserResponse
-import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
-import com.peterchege.pchat.core.api.responses.SearchUserResponse
+import com.peterchege.pchat.core.api.responses.GetMessagesResponse
 import com.peterchege.pchat.core.api.safeApiCall
 import com.peterchege.pchat.core.di.IoDispatcher
-import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
+import com.peterchege.pchat.domain.repository.remote.RemoteMessagesDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class RemoteChatsDataSourceImpl @Inject constructor(
+class RemoteMessagesDataSourceImpl @Inject constructor(
     private val api: PChatApi,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : RemoteChatsDataSource {
-
-
-    override suspend fun searchUser(query: String): NetworkResult<SearchUserResponse> {
-        return withContext(ioDispatcher) {
-            safeApiCall { api.searchUser(query = query) }
+) : RemoteMessagesDataSource {
+    override suspend fun getAllMessages(
+        senderId: String,
+        receiverId: String
+    ): NetworkResult<GetMessagesResponse> {
+        return withContext(ioDispatcher){
+            safeApiCall { api.getChatMessages(senderId = senderId,receiverId = receiverId) }
         }
     }
 
-    override suspend fun getUserById(id: String): NetworkResult<GetUserByIdResponse> {
-        return withContext(ioDispatcher) {
-            safeApiCall { api.getUserById(id = id) }
-        }
-    }
+
 }

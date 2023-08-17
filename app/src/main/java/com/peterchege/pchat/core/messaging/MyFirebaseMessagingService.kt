@@ -23,18 +23,36 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 import com.peterchege.pchat.R
+import com.peterchege.pchat.data.OfflineFirstMessageRepository
+import com.peterchege.pchat.domain.models.Message
+import com.peterchege.pchat.domain.repository.AuthRepository
 import com.peterchege.pchat.presentation.MainActivity
 import com.peterchege.pchat.util.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
+
+@AndroidEntryPoint
 class MyFirebaseMessagingService  : FirebaseMessagingService() {
 
+    @Inject
+    lateinit var json:Json
+
+    @Inject
+    lateinit var authRepository: AuthRepository
+
+    @Inject
+    lateinit var offlineFirstMessageRepository: OfflineFirstMessageRepository
 
     companion object {
         var sharedPref: SharedPreferences? = null
@@ -57,13 +75,23 @@ class MyFirebaseMessagingService  : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         if (remoteMessage.data.isNotEmpty()) {
+            val message = Message(
+                messageId = remoteMessage.data["messageId"] ?:"",
+                senderId = remoteMessage.data["senderId"] ?:"",
+                receiverId = remoteMessage.data["receiverId"] ?:"",
+                message = remoteMessage.data["message"] ?:"",
+                sentAt = remoteMessage.data["sentAt"] ?:"",
+                isRead = false,
+            )
+            CoroutineScope(Dispatchers.IO).launch {
+                offlineFirstMessageRepository.insertMessage(message = message)
+            }
+
 
         }
 
         // Check if message contains a notification payload.
         remoteMessage.notification?.let {
-
-
             sendNotification(it.body!!,it.title!!)
         }
     }

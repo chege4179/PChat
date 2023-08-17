@@ -13,37 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.data.remote
+package com.peterchege.pchat.data
 
 import com.peterchege.pchat.core.api.NetworkResult
 import com.peterchege.pchat.core.api.PChatApi
 import com.peterchege.pchat.core.api.requests.AddUser
 import com.peterchege.pchat.core.api.responses.AddUserResponse
-import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
-import com.peterchege.pchat.core.api.responses.SearchUserResponse
 import com.peterchege.pchat.core.api.safeApiCall
+import com.peterchege.pchat.core.datastore.repository.DefaultAuthDataProvider
 import com.peterchege.pchat.core.di.IoDispatcher
 import com.peterchege.pchat.domain.models.NetworkUser
-import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
+import com.peterchege.pchat.domain.repository.AuthRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class RemoteChatsDataSourceImpl @Inject constructor(
-    private val api: PChatApi,
+class AuthRepositoryImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : RemoteChatsDataSource {
-
-
-    override suspend fun searchUser(query: String): NetworkResult<SearchUserResponse> {
-        return withContext(ioDispatcher) {
-            safeApiCall { api.searchUser(query = query) }
+    private val api: PChatApi,
+    private val defaultAuthDataProvider: DefaultAuthDataProvider,
+):AuthRepository {
+    override suspend fun addUser(addUser: AddUser):NetworkResult<AddUserResponse> {
+        return withContext(ioDispatcher){
+            safeApiCall { api.addUser(addUser = addUser) }
         }
     }
 
-    override suspend fun getUserById(id: String): NetworkResult<GetUserByIdResponse> {
-        return withContext(ioDispatcher) {
-            safeApiCall { api.getUserById(id = id) }
+    override fun getAuthUser(): Flow<NetworkUser?> {
+        return defaultAuthDataProvider.getLoggedInUser().flowOn(ioDispatcher)
+    }
+
+    override suspend fun setAuthUser(user: NetworkUser) {
+        withContext(ioDispatcher){
+            defaultAuthDataProvider.setLoggedInUser(user = user)
         }
     }
+
+    override suspend fun signOutUser() {
+        withContext(ioDispatcher){
+            defaultAuthDataProvider.unsetLoggedInUser()
+        }
+    }
+
+
 }

@@ -15,25 +15,27 @@
  */
 package com.peterchege.pchat.core.api
 
+
 import com.peterchege.pchat.core.api.requests.AddUser
 import com.peterchege.pchat.core.api.responses.*
+import retrofit2.Response
 import retrofit2.http.*
 
 interface PChatApi {
-    @POST("/user/add")
-    suspend fun addUser(@Body addUser: AddUser): AddUserResponse
+    @POST("/user/login")
+    suspend fun addUser(@Body addUser: AddUser):Response<AddUserResponse>
 
     @GET("/user/search")
-    suspend fun searchUser(@Query("query") query: String): SearchUserResponse
+    suspend fun searchUser(@Query("query") query: String): Response<SearchUserResponse>
 
     @GET("/user/single/{id}")
-    suspend fun getUserById(@Path("id") id: String): GetUserByIdResponse
+    suspend fun getUserById(@Path("id") id: String):Response<GetUserByIdResponse>
 
     @GET("/chat/message/{senderId}/{receiverId}")
     suspend fun getChatMessages(
         @Path("senderId") senderId: String,
         @Path("receiverId") receiverId: String
-    ): GetMessagesResponse
+    ): Response<GetMessagesResponse>
 
 
 }

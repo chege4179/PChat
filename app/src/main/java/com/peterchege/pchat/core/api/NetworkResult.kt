@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.peterchege.pchat.domain.repository.remote
+package com.peterchege.pchat.core.api
 
-import com.peterchege.pchat.core.api.requests.AddUser
-import com.peterchege.pchat.core.api.responses.AddUserResponse
-import com.peterchege.pchat.core.api.responses.GetUserByIdResponse
-import com.peterchege.pchat.core.api.responses.SearchUserResponse
-
-interface RemoteUserDataSource {
-
-
-    suspend fun addUser(addUser: AddUser): AddUserResponse
-
-    suspend fun searchUser(query:String): SearchUserResponse
-
-    suspend fun getUserById(id:String): GetUserByIdResponse
-
-
+sealed class NetworkResult<T : Any> {
+    class Success<T: Any>(val data: T) : NetworkResult<T>()
+    class Error<T: Any>(val code: Int, val message: String?) : NetworkResult<T>()
+    class Exception<T: Any>(val e: Throwable) : NetworkResult<T>()
 }

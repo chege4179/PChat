@@ -15,18 +15,19 @@
  */
 package com.peterchege.pchat.core.di
 
-import com.google.firebase.auth.FirebaseAuth
 import com.peterchege.pchat.core.api.PChatApi
-import com.peterchege.pchat.core.datastore.repository.UserInfoRepository
-import com.peterchege.pchat.core.room.database.PChatDatabase
+import com.peterchege.pchat.core.datastore.repository.DefaultAuthDataProvider
+import com.peterchege.pchat.core.datastore.repository.DefaultFCMProvider
+import com.peterchege.pchat.data.AuthRepositoryImpl
+import com.peterchege.pchat.data.OfflineFirstMessageRepository
 import com.peterchege.pchat.data.OfflineFirstChatRepository
-import com.peterchege.pchat.data.OfflineFirstUserRepository
+import com.peterchege.pchat.domain.repository.AuthRepository
+import com.peterchege.pchat.domain.repository.MessageRepository
 import com.peterchege.pchat.domain.repository.ChatRepository
-import com.peterchege.pchat.domain.repository.UserRepository
+import com.peterchege.pchat.domain.repository.local.LocalMessagesDataSource
 import com.peterchege.pchat.domain.repository.local.LocalChatsDataSource
-import com.peterchege.pchat.domain.repository.local.LocalUserDataSource
+import com.peterchege.pchat.domain.repository.remote.RemoteMessagesDataSource
 import com.peterchege.pchat.domain.repository.remote.RemoteChatsDataSource
-import com.peterchege.pchat.domain.repository.remote.RemoteUserDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,20 +41,31 @@ object RepositoryModule {
 
     @Provides
     @Singleton
+    fun provideAuthRepository(
+        api:PChatApi,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+        defaultAuthDataProvider: DefaultAuthDataProvider,
+
+    ):AuthRepository{
+        return AuthRepositoryImpl(
+            api = api,
+            ioDispatcher = ioDispatcher,
+            defaultAuthDataProvider = defaultAuthDataProvider,
+        )
+    }
+
+    @Provides
+    @Singleton
     fun provideChatRepository(
+        remoteMessagesDataSource: RemoteMessagesDataSource,
+        localMessagesDataSource: LocalMessagesDataSource,
         remoteChatsDataSource: RemoteChatsDataSource,
-        localChatsDataSource: LocalChatsDataSource,
-        remoteUserDataSource: RemoteUserDataSource,
-        localUserDataSource : LocalUserDataSource,
+        localChatsDataSource : LocalChatsDataSource,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
-    ): ChatRepository {
-        return OfflineFirstChatRepository(
-            remoteChatsDataSource = remoteChatsDataSource,
-            remoteUserDataSource = remoteUserDataSource,
-            localChatsDataSource = localChatsDataSource,
-            localUserDataSource = localUserDataSource,
-            defaultDispatcher = defaultDispatcher,
+    ): MessageRepository {
+        return OfflineFirstMessageRepository(
+            localMessagesDataSource = localMessagesDataSource,
             ioDispatcher = ioDispatcher,
         )
     }
@@ -61,16 +73,14 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideUserRepository(
-        remoteUserDataSource: RemoteUserDataSource,
-        localUserDataSource : LocalUserDataSource,
-        localChatsDataSource: LocalChatsDataSource,
+        remoteChatsDataSource: RemoteChatsDataSource,
+        localChatsDataSource : LocalChatsDataSource,
         @IoDispatcher ioDispatcher: CoroutineDispatcher
-    ): UserRepository {
-        return OfflineFirstUserRepository(
-            remoteUserDataSource = remoteUserDataSource,
-            localUserDataSource = localUserDataSource,
-            ioDispatcher = ioDispatcher,
+    ): ChatRepository {
+        return OfflineFirstChatRepository(
+            remoteChatsDataSource = remoteChatsDataSource,
             localChatsDataSource = localChatsDataSource,
+            ioDispatcher = ioDispatcher,
 
         )
     }

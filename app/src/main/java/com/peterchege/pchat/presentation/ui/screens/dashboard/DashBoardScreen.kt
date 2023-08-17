@@ -16,14 +16,22 @@
 package com.peterchege.pchat.presentation.ui.screens.dashboard
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerScope
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,15 +48,14 @@ import androidx.navigation.NavHostController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberImagePainter
-import com.google.accompanist.pager.*
-import com.peterchege.pchat.R
+
 import com.peterchege.pchat.presentation.ui.screens.dashboard.chat.all_chats_screen.AllChatsScreen
 import com.peterchege.pchat.presentation.ui.screens.dashboard.status.all_status_screen.AllStatusScreen
 import com.peterchege.pchat.presentation.ui.theme.testColor
 import com.peterchege.pchat.util.Screens
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @ExperimentalCoilApi
 @Composable
@@ -99,7 +106,11 @@ fun DashBoardScreen(
                 backgroundColor = MaterialTheme.colors.primary)
         }
     ) {
-        val pagerState = rememberPagerState()
+        val pagerState = rememberPagerState(
+            initialPage = 0,
+            initialPageOffsetFraction = 0f,
+            pageCount = { 2 },
+        )
         Column(
             modifier = Modifier.background(Color.White)
         ) {
@@ -116,7 +127,7 @@ fun DashBoardScreen(
 
 
 
-@ExperimentalPagerApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Tabs(pagerState: PagerState) {
     val list = listOf("Chats","Status")
@@ -134,7 +145,7 @@ fun Tabs(pagerState: PagerState) {
         },
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
-                Modifier.pagerTabIndicatorOffset(pagerState, tabPositions),
+
                 height = 2.dp,
                 color = testColor
             )
@@ -159,11 +170,21 @@ fun Tabs(pagerState: PagerState) {
     }
 }
 
-@ExperimentalPagerApi
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TabsContent(pagerState: PagerState, navController: NavController) {
-    HorizontalPager(state = pagerState ,count =2) { page ->
-        when(page) {
+    HorizontalPager(
+        modifier = Modifier,
+        state = pagerState,
+        pageSpacing = 0.dp,
+        userScrollEnabled = true,
+        reverseLayout = false,
+        contentPadding = PaddingValues(0.dp),
+        beyondBoundsPageCount = 0,
+        pageSize = PageSize.Fill,
+        key = null,
+    ){
+        when (pagerState.currentPage) {
             0 -> AllChatsScreen(navController = navController)
             1 -> AllStatusScreen(navController = navController)
 

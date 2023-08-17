@@ -27,6 +27,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +40,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
-import com.peterchege.pchat.domain.uiState.AddChatUiState
 import com.peterchege.pchat.presentation.ui.components.ProfileCard
 import com.peterchege.pchat.presentation.ui.theme.MainWhiteColor
 import com.peterchege.pchat.util.Screens
@@ -52,6 +53,7 @@ fun AddChatScreen(
     viewModel:AddChatScreenViewModel = hiltViewModel()
 ){
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val authUser = viewModel.authUser.collectAsStateWithLifecycle().value
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -113,22 +115,22 @@ fun AddChatScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = uiState.message
+                            text = "Search Users"
                         )
                     }
                 }
-                is AddChatUiState.Success -> {
+                is AddChatUiState.ResultsFound -> {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(top = 10.dp)
                     ) {
-                        items(items = uiState.data.searchUsers) { user ->
+                        items(items = uiState.users) { user ->
                             ProfileCard(
                                 navController = navController,
                                 user =user,
                                 onProfileNavigate = {
-                                    navController.navigate(Screens.CHAT_SCREEN + "/$it")
+                                    navController.navigate(Screens.CHAT_SCREEN + "/$it/${authUser!!.userId}")
 
                                 }
                             )
@@ -149,7 +151,7 @@ fun AddChatScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = uiState.errorMessage
+                            text = uiState.message
                         )
                     }
                 }

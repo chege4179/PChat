@@ -39,7 +39,7 @@ fun AllChatsScreen(
     viewModel: AllChatsScreenViewModel = hiltViewModel()
 ) {
     val scaffoldState = rememberScaffoldState()
-    val chats = viewModel.chats.collectAsStateWithLifecycle().value
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
@@ -57,31 +57,41 @@ fun AllChatsScreen(
         }
 
     ) {
-        if (chats.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    text = "No chats found",
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                items(items = chats) { chat ->
-                    if (chat != null) {
-                        ChatItemCard(
-                            chatCardInfo = chat,
-                            onChatClicked = {
-                                navController.navigate(Screens.CHAT_SCREEN + "/${chat.chatUserInfo.userId}")
+        when(uiState){
+            is AllChatsScreenUiState.Error -> {
 
-                            },
+            }
+            is AllChatsScreenUiState.Loading -> {
+
+            }
+            is AllChatsScreenUiState.Success -> {
+                val chats = uiState.chats
+                if (chats.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = "No chats found",
+                            modifier = Modifier.align(Alignment.Center)
                         )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        items(items = chats) { chat ->
+                            ChatItemCard(
+                                chatCardInfo = chat,
+                                onChatClicked = {
+                                    navController.navigate(route = Screens.CHAT_SCREEN + "/${chat.chatUserInfo.userId}/${chat.authUser.userId}")
+
+                                },
+                            )
+                        }
                     }
                 }
             }
         }
+
     }
 }
